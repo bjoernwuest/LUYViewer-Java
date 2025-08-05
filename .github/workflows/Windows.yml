@@ -61,7 +61,7 @@ jobs:
         run: |
           $releaseDir = "staging"
           New-Item -ItemType Directory -Force -Path $releaseDir
-#          $archiveName = "LUYViewer-Windows-${{ steps.version.outputs.version }}.zip"
+          $archiveName = "LUYViewer-Windows-${{ steps.version.outputs.version }}.zip"
 #          Copy-Item "config.jsonc" "$releaseDir/"
 #          Copy-Item "LUYViewer.bat" "$releaseDir/"
 #          Copy-Item "README.md" "$releaseDir/"
