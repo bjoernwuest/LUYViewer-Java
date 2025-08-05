@@ -56,10 +56,10 @@ jobs:
           echo "Generated version: $version"
           echo "Generated tag: $tag"
 
-#      - name: Build release package
-#        id: archive
-#        run: |
-#          $releaseDir = "staging"
+      - name: Build release package
+        id: archive
+        run: |
+          $releaseDir = "staging"
 #          New-Item -ItemType Directory -Force -Path $releaseDir
 #          $archiveName = "LUYViewer-Windows-${{ steps.version.outputs.version }}.zip"
 #          Copy-Item "config.jsonc" "$releaseDir/"
