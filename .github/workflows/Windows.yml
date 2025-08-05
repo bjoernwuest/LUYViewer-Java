@@ -66,12 +66,12 @@ jobs:
           # Copy-Item "target\gluonfx\x86_64-windows\LUYViewer.exe" "$releaseDir/"
           Copy-Item "target\gluonfx\x86_64-windows\HelloFX.exe" "$releaseDir/"
           # Create the archive
-          # Compress-Archive -Path "$releaseDir/*" -DestinationPath $archiveName -CompressionLevel Optimal
-          # echo "✓ Created release archive: $archiveName"
-          # $archiveInfo = Get-Item $archiveName
-          # echo "Archive size: $(($archiveInfo.Length / 1MB).ToString('F1')) MB"
-          # Add-Content -Path $env:GITHUB_OUTPUT -Value "archive_name=$archiveName"
-          # Add-Content -Path $env:GITHUB_OUTPUT -Value "archive_path=$((Get-Item $archiveName).FullName)"
+          Compress-Archive -Path "$releaseDir/*" -DestinationPath $archiveName -CompressionLevel Optimal
+          echo "✓ Created release archive: $archiveName"
+          $archiveInfo = Get-Item $archiveName
+          echo "Archive size: $(($archiveInfo.Length / 1MB).ToString('F1')) MB"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "archive_name=$archiveName"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "archive_path=$((Get-Item $archiveName).FullName)"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
