@@ -69,8 +69,8 @@ jobs:
 #          echo "✓ Created release archive: $archiveName"
 #          $archiveInfo = Get-Item $archiveName
 #          echo "Archive size: $(($archiveInfo.Length / 1MB).ToString('F1')) MB"
-#         Add-Content -PATH $env:GITHUB_OUTPUT -VALUE "archive_name=$archiveName"
-#         Add-Content -PATH $env:GITHUB_OUTPUT -VALUE "archive_path=$((Get-Item $archiveName).FullName)"
+#          Add-Content -Path $env:GITHUB_OUTPUT -Value "archive_name=$archiveName"
+#          Add-Content -Path $env:GITHUB_OUTPUT -Value "archive_path=$((Get-Item $archiveName).FullName)"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
