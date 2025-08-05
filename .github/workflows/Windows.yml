@@ -83,6 +83,7 @@ jobs:
           Copy-Item "config.jsonc" "$releaseDir/"
           Copy-Item "LUYViewer.bat" "$releaseDir/"
           Copy-Item "README.md" "$releaseDir/"
+          Copy-Item "src\main\resources\style.css" "$releaseDir/"
           Copy-Item "target\gluonfx\x86_64-windows\LUYViewer.exe" "$releaseDir/"
           # Create the archive
           Compress-Archive -Path "$releaseDir/*" -DestinationPath $archiveName -CompressionLevel Optimal
