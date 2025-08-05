@@ -59,9 +59,9 @@ jobs:
       - name: Build release package
         id: archive
         run: |
-          $archiveName = "LUYViewer-Windows-${{ steps.version.outputs.version }}.zip"
           $releaseDir = "staging"
           New-Item -ItemType Directory -Force -Path $releaseDir
+          $archiveName = "LUYViewer-Windows-${{ steps.version.outputs.version }}.zip"
 #          Copy-Item "config.jsonc" "$releaseDir/"
 #          Copy-Item "LUYViewer.bat" "$releaseDir/"
 #          Copy-Item "README.md" "$releaseDir/"
@@ -69,8 +69,74 @@ jobs:
           Copy-Item "target\gluonfx\x86_64-windows\HelloFX.exe" "$releaseDir/"
           # Create the archive
           Compress-Archive -Path "$releaseDir/*" -DestinationPath $archiveName -CompressionLevel Optimal
-          echo "✓ Created release archive: $archiveName"
+#          echo "✓ Created release archive: $archiveName"
           $archiveInfo = Get-Item $archiveName
           echo "Archive size: $(($archiveInfo.Length / 1MB).ToString('F1')) MB"
           echo "archive_name=$archiveName" >> $env:GITHUB_OUTPUT
           echo "archive_path=$((Get-Item $archiveName).FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "LUYViewer Windows Release ${{ steps.version.outputs.version }}"
+          body: |
+            # LUYViewer Windows Native Binary Release
+            
+            **Version:** ${{ steps.version.outputs.version }}  
+            **Build Time:** ${{ steps.version.outputs.timestamp }}  
+            **Commit:** ${{ github.sha }}
+            
+            ## 🚀 Quick Start
+            1. Download and extract `$archiveName`
+            2. Edit `config.jsonc` with your LUY server details
+            3. Double-click `$LUYViewer.bat` to start the application
+            
+            ## 📦 What's Included
+            - **LUYViewer.exe** - Native Windows binary (no Java required!)
+            - **LUYViewer.bat** - Easy-to-use launcher script
+            - **config.jsonc** - Configuration file template
+            - **README.txt** - Detailed setup instructions
+            
+            ## ⚙️ System Requirements
+            - Windows 10 or later (x64)
+            - No additional software required
+            
+            ## 🐛 Troubleshooting
+            If you encounter issues:
+            1. Make sure all files are extracted to the same folder
+            2. Check that `config.jsonc` is properly configured
+            3. Run from Command Prompt to see error messages
+            4. Check the [Issues](https://github.com/${{ github.repository }}/issues) page
+            
+            ---
+            
+            **Build Information:**
+            - Java Version: ${{ env.JAVA_VERSION }}
+            - Platform: Windows x64
+            - Build Method: GluonFX Native Build
+          files: |
+            ${{ steps.archive.outputs.archive_path }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+
+      - name: List files after native image
+        run: |
+          echo "=== Repository root contents ==="
+          Get-ChildItem -Force
+          echo ""
+          echo "=== Target directory contents ==="
+          if (Test-Path "target") {
+            Get-ChildItem -Recurse target | Select-Object FullName
+          } else {
+            echo "target directory not found"
+          }
+          echo ""
+          echo "=== JavaFX DLL directory contents ==="
+          if (Test-Path "javafx-dlls") {
+            Get-ChildItem -Recurse javafx-dlls | Select-Object FullName
+          } else {
+            echo "javafx-dlls directory not found"
+          }
+
