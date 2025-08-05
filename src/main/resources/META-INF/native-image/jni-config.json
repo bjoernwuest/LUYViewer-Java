@@ -6,6 +6,9 @@
   "name":"[Lcom.sun.javafx.font.FontConfigManager$FontConfigFont;"
 },
 {
+  "name":"[Ljava.lang.String;"
+},
+{
   "name":"com.sun.glass.ui.Clipboard",
   "methods":[{"name":"contentChanged","parameterTypes":[] }]
 },
@@ -74,6 +77,14 @@
   "fields":[{"name":"m00"}, {"name":"m01"}, {"name":"m02"}, {"name":"m10"}, {"name":"m11"}, {"name":"m12"}]
 },
 {
+  "name":"java.awt.Color",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"java.awt.GraphicsEnvironment",
+  "methods":[{"name":"isHeadless","parameterTypes":[] }]
+},
+{
   "name":"java.lang.Boolean",
   "fields":[{"name":"FALSE"}, {"name":"TRUE"}],
   "methods":[{"name":"getBoolean","parameterTypes":["java.lang.String"] }]
@@ -92,7 +103,11 @@
 },
 {
   "name":"java.lang.String",
-  "methods":[{"name":"toLowerCase","parameterTypes":["java.util.Locale"] }]
+  "methods":[{"name":"<init>","parameterTypes":["byte[]","java.lang.String"] }, {"name":"getBytes","parameterTypes":["java.lang.String"] }, {"name":"toLowerCase","parameterTypes":["java.util.Locale"] }]
+},
+{
+  "name":"java.lang.System",
+  "methods":[{"name":"load","parameterTypes":["java.lang.String"] }]
 },
 {
   "name":"java.nio.ByteBuffer",

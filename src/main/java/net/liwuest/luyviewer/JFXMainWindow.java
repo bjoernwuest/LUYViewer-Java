@@ -73,14 +73,13 @@ public class JFXMainWindow {
         // Configure download button to get new LUY data file
         Button downloadButton = new Button("Download from LUY");
         downloadButton.setOnAction(e -> {
-/*            JFXDownloadDialog dialog = new JFXDownloadDialog(stage);
+            JFXDownloadDialog dialog = new JFXDownloadDialog(stage);
             dialog.setOnFileDownloaded(timestamp -> {
                 Platform.runLater(() -> {
                     fileComboBox.getItems().add(new FileListEntry(timestamp));
                 });
             });
             dialog.show();
-*/
         });
 
         setupUI(downloadButton);

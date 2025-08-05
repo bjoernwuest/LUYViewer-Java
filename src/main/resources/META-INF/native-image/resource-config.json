@@ -3,6 +3,12 @@
   "includes":[{
     "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
   }, {
+    "pattern":"\\QMETA-INF/services/java.net.spi.InetAddressResolverProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.net.spi.URLStreamHandlerProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.nio.channels.spi.SelectorProvider\\E"
+  }, {
     "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
   }, {
     "pattern":"\\Qhellofx/openduke.png\\E"
@@ -11,7 +17,13 @@
   }, {
     "pattern":"\\Qnet/liwuest/luyviewer/style.css\\E"
   }, {
+    "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/nfkc.nrm\\E"
+  }, {
     "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/ubidi.icu\\E"
+  }, {
+    "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/uprops.icu\\E"
+  }, {
+    "pattern":"java.base:\\Qsun/net/idn/uidna.spp\\E"
   }, {
     "pattern":"javafx.controls:\\Qcom/sun/javafx/scene/control/skin/modena/modena.bss\\E"
   }, {
@@ -38,6 +50,9 @@
     "locales":["", "de", "und"]
   }, {
     "name":"com/sun/javafx/scene/control/skin/resources/controls",
-    "locales":["", "de"]
+    "locales":["", "de", "und"]
+  }, {
+    "name":"sun.awt.resources.awt",
+    "classNames":["sun.awt.resources.awt", "sun.awt.resources.awt_de"]
   }]
 }
