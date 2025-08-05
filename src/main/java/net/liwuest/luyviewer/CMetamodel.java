@@ -61,6 +61,7 @@ public class CMetamodel {
         public final boolean isRelationshipFeature;
         public final boolean isSelfrelationFeature;
         public final boolean isDirectionFeature;
+        public final boolean isSortable = false; // FIXME sortable are single-value native literals, probably also single-value enums
 
         Feature(CMetamodel Metamodel, Map<String, Object> Data) {
             _metamodel = Metamodel;

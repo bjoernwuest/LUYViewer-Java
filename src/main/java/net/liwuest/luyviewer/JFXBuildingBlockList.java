@@ -41,6 +41,7 @@ public class JFXBuildingBlockList extends Pane {
         scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         // Breite der ScrollPane an die Breite des Parent-Pane binden
         scrollPane.prefViewportWidthProperty().bind(this.widthProperty().subtract(20)); // 20 für Padding
+        scrollPane.prefViewportHeightProperty().bind(this.heightProperty().subtract(70));
         vbox.getChildren().add(scrollPane);
         vbox.setFillWidth(true);
         VBox.setVgrow(scrollPane, javafx.scene.layout.Priority.ALWAYS);
@@ -86,11 +87,14 @@ public class JFXBuildingBlockList extends Pane {
                     });
                     subCol.setResizable(true);
                     subCol.setMinWidth(120); // Mindestbreite für Subspalten
+                    // Disable sorting if not sortable
+                    subCol.setSortable(relFeature.isSortable);
                     parentCol.getColumns().add(subCol);
                     relColIdx++;
                 }
                 parentCol.setResizable(true);
                 parentCol.setMinWidth(120 * Math.max(1, relFeatures.size())); // Mindestbreite für Parent
+                parentCol.setSortable(false); // Parent columns are not directly sortable
                 tableView.getColumns().add(parentCol);
             } else {
                 TableColumn<CDatamodel.Element, Node> col = new TableColumn<>(feature.name);
@@ -101,6 +105,8 @@ public class JFXBuildingBlockList extends Pane {
                 });
                 col.setResizable(true);
                 col.setMinWidth(120); // Mindestbreite für normale Spalten
+                // Disable sorting if not sortable
+                col.setSortable(feature.isSortable);
                 tableView.getColumns().add(col);
             }
             colIdx++;

@@ -106,14 +106,15 @@ jobs:
             **Commit:** ${{ github.sha }}
             
             ## 🚀 Quick Start
-            1. Download and extract `$archiveName`
+            1. Download and extract ${{ steps.archive.outputs.archive_name }}
             2. Edit `config.jsonc` with your LUY server details
-            3. Double-click `$LUYViewer.bat` to start the application
+            3. Double-click LUYViewer.bat or LUYViewer.exe to start the application
             
             ## 📦 What's Included
             - **LUYViewer.exe** - Native Windows binary (no Java required!)
             - **LUYViewer.bat** - Easy-to-use launcher script
-            - **config.jsonc** - Configuration file template
+            - **config.jsonc** - Configuration file
+            - **style.css** - Stylesheet which can be applied for customization
             - **README.txt** - Detailed setup instructions
             
             ## ⚙️ System Requirements
@@ -124,7 +125,7 @@ jobs:
             If you encounter issues:
             1. Make sure all files are extracted to the same folder
             2. Check that `config.jsonc` is properly configured
-            3. Run from Command Prompt to see error messages
+            3. Run LUYViewer.bar from Command Prompt to see error messages
             4. Check the [Issues](https://github.com/${{ github.repository }}/issues) page
             
             ---
