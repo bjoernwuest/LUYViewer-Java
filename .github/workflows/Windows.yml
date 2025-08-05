@@ -70,7 +70,9 @@ jobs:
 
       # Copy the native binary to the staging directory
       - name: Copy native image to staging
-        run: Copy-Item "target\gluonfx\x86_64-windows\HelloFX.exe" "$releaseDir/"
+        run: |
+          $releaseDir = "staging"
+          Copy-Item "target\gluonfx\x86_64-windows\HelloFX.exe" "$releaseDir/"
 
       # Upload the staging directory as a build artifact. You will be able to download this after the build finishes.
       - name: Upload
