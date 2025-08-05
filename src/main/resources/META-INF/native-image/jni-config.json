@@ -75,7 +75,8 @@
 },
 {
   "name":"java.lang.Boolean",
-  "fields":[{"name":"FALSE"}, {"name":"TRUE"}]
+  "fields":[{"name":"FALSE"}, {"name":"TRUE"}],
+  "methods":[{"name":"getBoolean","parameterTypes":["java.lang.String"] }]
 },
 {
   "name":"java.lang.Iterable",

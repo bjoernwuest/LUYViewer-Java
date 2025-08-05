@@ -25,7 +25,10 @@ public class CLuyFileService {
      * @return a set of unique prefixes of file names in the "data" directory.
      * @throws IOException if an I/O error occurs when accessing the directory or files.
      */
-    public static Set<String> listFiles() throws IOException { return Files.list(Paths.get("data")).map(p -> p.getFileName().toString().split("_")[0]).collect(Collectors.toSet()); }
+    public static Set<String> listFiles() throws IOException {
+        Files.createDirectories(Paths.get("data"));
+        return Files.list(Paths.get("data")).map(p -> p.getFileName().toString().split("_")[0]).collect(Collectors.toSet());
+    }
 
     /**
      * Downloads a LUY file by its ID from the configured LUY host with authentication.

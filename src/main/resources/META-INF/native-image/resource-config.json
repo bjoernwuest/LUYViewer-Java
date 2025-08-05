@@ -17,6 +17,8 @@
   }, {
     "pattern":"javafx.graphics:\\Qcom/sun/glass/utils/NativeLibLoader.class\\E"
   }, {
+    "pattern":"javafx.graphics:\\Qlibdecora_sse.so\\E"
+  }, {
     "pattern":"javafx.graphics:\\Qlibglass.so\\E"
   }, {
     "pattern":"javafx.graphics:\\Qlibglassgtk3.so\\E"
@@ -34,5 +36,8 @@
   "bundles":[{
     "name":"com.sun.javafx.tk.quantum.QuantumMessagesBundle",
     "locales":["", "de", "und"]
+  }, {
+    "name":"com/sun/javafx/scene/control/skin/resources/controls",
+    "locales":["", "de"]
   }]
 }

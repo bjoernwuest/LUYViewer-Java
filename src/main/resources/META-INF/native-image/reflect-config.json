@@ -28,6 +28,22 @@
   "methods":[{"name":"getInstance","parameterTypes":[] }]
 },
 {
+  "name":"com.sun.scenario.effect.impl.prism.PrRenderer",
+  "methods":[{"name":"createRenderer","parameterTypes":["com.sun.scenario.effect.FilterContext"] }]
+},
+{
+  "name":"com.sun.scenario.effect.impl.prism.sw.PSWRenderer",
+  "methods":[{"name":"createRenderer","parameterTypes":["com.sun.scenario.effect.FilterContext"] }]
+},
+{
+  "name":"com.sun.scenario.effect.impl.sw.sse.SSELinearConvolveShadowPeer",
+  "methods":[{"name":"<init>","parameterTypes":["com.sun.scenario.effect.FilterContext","com.sun.scenario.effect.impl.Renderer","java.lang.String"] }]
+},
+{
+  "name":"com.sun.scenario.effect.impl.sw.sse.SSERendererDelegate",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"hellofx.HelloFX",
   "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"main","parameterTypes":["java.lang.String[]"] }]
 },
@@ -58,6 +74,9 @@
   "name":"javafx.scene.Camera"
 },
 {
+  "name":"javafx.scene.Group"
+},
+{
   "name":"javafx.scene.Node"
 },
 {
@@ -76,6 +95,9 @@
   "name":"javafx.scene.control.Labeled"
 },
 {
+  "name":"javafx.scene.effect.Effect"
+},
+{
   "name":"javafx.scene.image.Image"
 },
 {
@@ -86,6 +108,12 @@
 },
 {
   "name":"javafx.scene.layout.Region"
+},
+{
+  "name":"javafx.scene.shape.Rectangle"
+},
+{
+  "name":"javafx.scene.shape.SVGPath"
 },
 {
   "name":"javafx.scene.shape.Shape"
@@ -100,6 +128,9 @@
   "name":"javafx.scene.transform.Transform"
 },
 {
+  "name":"javafx.stage.PopupWindow"
+},
+{
   "name":"javafx.stage.Stage"
 },
 {
@@ -108,6 +139,10 @@
 {
   "name":"net.liwuest.luyviewer.LUYViewer",
   "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"main","parameterTypes":["java.lang.String[]"] }]
+},
+{
+  "name":"sun.misc.Unsafe",
+  "fields":[{"name":"theUnsafe"}]
 },
 {
   "name":"sun.security.provider.MD5",
