@@ -55,6 +55,7 @@ jobs:
 
       - name: Build release package
         id: archive
+        shell: pwsh
         run: |
           $releaseDir = "staging"
           New-Item -ItemType Directory -Force -Path $releaseDir
