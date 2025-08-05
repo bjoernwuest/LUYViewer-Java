@@ -49,12 +49,9 @@ jobs:
           $version = "1.0.0-$timestamp"
           $tag = "1.0.0-release-$timestamp"
           
-          echo "$timestamp=$timestamp" >> $env:GITHUB_OUTPUT
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-          echo "tag=$tag" >> $env:GITHUB_OUTPUT
-          
-          echo "Generated version: $version"
-          echo "Generated tag: $tag"
+          Add-Content -PATH $env:GITHUB_OUTPUT -VALUE "timestamp=$timestamp" 
+          Add-Content -PATH $env:GITHUB_OUTPUT -VALUE "version=$version" 
+          Add-Content -PATH $env:GITHUB_OUTPUT -VALUE "tag=$tag" 
 
       - name: Build release package
         id: archive
@@ -72,8 +69,8 @@ jobs:
 #          echo "✓ Created release archive: $archiveName"
 #          $archiveInfo = Get-Item $archiveName
 #          echo "Archive size: $(($archiveInfo.Length / 1MB).ToString('F1')) MB"
-#          echo "archive_name=$archiveName" >> $env:GITHUB_OUTPUT
-#          echo "archive_path=$((Get-Item $archiveName).FullName)" >> $env:GITHUB_OUTPUT
+#         Add-Content -PATH $env:GITHUB_OUTPUT -VALUE "archive_name=$archiveName"
+#         Add-Content -PATH $env:GITHUB_OUTPUT -VALUE "archive_path=$((Get-Item $archiveName).FullName)"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
