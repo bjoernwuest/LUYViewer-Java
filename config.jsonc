@@ -1,0 +1,6 @@
+{
+  // The URL of the LUY host. Do not terminate with / and include schema (http, https). Example: https://demo.luy.app
+  "luy_host": "https://luy.eam.elli.eco",
+  // The language to use (two-letter code), replaces the xx in the "label_xx.json" file name to use
+  "language": "de"
+}

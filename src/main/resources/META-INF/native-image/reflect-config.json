@@ -106,6 +106,10 @@
   "name":"javafx.stage.Window"
 },
 {
+  "name":"net.liwuest.luyviewer.LUYViewer",
+  "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"main","parameterTypes":["java.lang.String[]"] }]
+},
+{
   "name":"sun.security.provider.MD5",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 }

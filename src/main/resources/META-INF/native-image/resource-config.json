@@ -9,6 +9,8 @@
   }, {
     "pattern":"\\Qhellofx/style.css\\E"
   }, {
+    "pattern":"\\Qnet/liwuest/luyviewer/style.css\\E"
+  }, {
     "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/ubidi.icu\\E"
   }, {
     "pattern":"javafx.controls:\\Qcom/sun/javafx/scene/control/skin/modena/modena.bss\\E"
@@ -31,6 +33,6 @@
   }]},
   "bundles":[{
     "name":"com.sun.javafx.tk.quantum.QuantumMessagesBundle",
-    "locales":["", "de"]
+    "locales":["", "de", "und"]
   }]
 }
