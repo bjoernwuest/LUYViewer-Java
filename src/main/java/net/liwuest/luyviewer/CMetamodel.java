@@ -1,0 +1,177 @@
+
+package net.liwuest.luyviewer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Represents a metamodel structure that can be loaded from JSON using Jackson.
+ */
+public class CMetamodel {
+    public final static List<String> NonRelationshipFeatureNames = Arrays.asList("boolean", "date", "date_time", "integer", "interfaceDirection", "richtext", "string");
+
+    abstract static class BasicExpression implements Comparable<BasicExpression> {
+        public final String type;
+        public final String persistentName;
+        public final String name;
+        public final String pluralName;
+        public final String description;
+
+        BasicExpression(Map<String, Object> Data) {
+            type = Data.getOrDefault("type", "<UNKNOWN>").toString();
+            persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
+            name = Data.getOrDefault("name", "<UNKNOWN>").toString();
+            pluralName = Data.getOrDefault("pluralName", "<UNKNOWN>").toString();
+            description = Data.getOrDefault("description", "<UNKNOWN>").toString();
+        }
+
+        @Override public int compareTo(BasicExpression Other) { return this.name.compareTo(Other.name); }
+        @Override public String toString() { return name; }
+    }
+
+    public final static class Feature implements Comparable<Feature> {
+        public final String type;
+        public final String persistentName;
+        public final String name;
+        public final String pluralName;
+        public final String description;
+        public final boolean mandatory;
+        public final boolean multiple;
+        public final boolean isEnumerationAttribute;
+        public final boolean isRelationshipFeature;
+
+        Feature(Map<String, Object> Data) {
+            type = Data.getOrDefault("type", "<UNKNOWN>").toString();
+            persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
+            name = Data.getOrDefault("name", "<UNKNOWN>").toString();
+            pluralName = Data.getOrDefault("pluralName", "<UNKNOWN>").toString();
+            description = Data.getOrDefault("description", "<UNKNOWN>").toString();
+            mandatory = Boolean.parseBoolean(Data.getOrDefault("mandatory", Boolean.FALSE).toString());
+            multiple = Boolean.parseBoolean(Data.getOrDefault("multiple", Boolean.FALSE).toString());
+            isEnumerationAttribute = type.startsWith("io.luy.model.attribute.EnumAT.");
+            isRelationshipFeature = !(NonRelationshipFeatureNames.contains(type) || isEnumerationAttribute);
+        }
+
+        @Override public int compareTo(Feature Other) {
+            if ("Id".equals(this.name)) return -1;
+            if ("Id".equals(Other.name)) return 1;
+            if ("Name".equals(this.name)) return -1;
+            if ("Name".equals(Other.name)) return 1;
+            return this.name.compareTo(Other.name);
+        }
+    }
+
+    public abstract static class TypeExpression extends BasicExpression {
+        public final String abbreviation;
+        public final Set<Feature> features;
+
+        TypeExpression(Map<String, Object> Data) {
+            super(Data);
+            abbreviation = Data.getOrDefault("abbreviation", "<UNKNOWN>").toString();
+            if (Data.getOrDefault("features", new ArrayList<Map<String, Object>>()) instanceof List featureData) {
+                features = (Set<Feature>)featureData.stream().filter(fd -> fd instanceof Map).map(fd -> new Feature((Map)fd)).filter(Objects::nonNull).collect(Collectors.toCollection(TreeSet::new));
+            } else features = new TreeSet<>();
+        }
+    }
+
+    public final static class RelationshipTypeExpression extends TypeExpression {
+        RelationshipTypeExpression(Map<String, Object> Data) { super(Data); }
+    }
+
+    public final static class SubstantialTypeExpression extends TypeExpression {
+        SubstantialTypeExpression(Map<String, Object> Data) { super(Data); }
+    }
+
+    public final static class Literal implements Comparable<Literal> {
+        public final String persistentName;
+        public final String name;
+        public final String pluralName;
+        public final String description;
+        public final Color color;
+        public final int index;
+
+        Literal(Map<String, Object> Data) {
+            persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
+            name = Data.getOrDefault("name", "<UNKNOWN>").toString();
+            pluralName = Data.getOrDefault("pluralName", "<UNKNOWN>").toString();
+            description = Data.getOrDefault("description", "<UNKNOWN>").toString();
+            color = deserialize(Data.getOrDefault("color", "rgb(0,0,0)").toString());
+            index = Integer.parseInt(Data.getOrDefault("index", -1).toString());
+        }
+
+        public Color deserialize(String value) {
+            String[] rgb = value.substring(4, value.length() - 1).split(",");
+            return new Color(Integer.parseInt(rgb[0].trim()), Integer.parseInt(rgb[1].trim()), Integer.parseInt(rgb[2].trim()));
+        }
+
+        @Override public int compareTo(Literal Other) { return this.name.compareTo(Other.name); }
+    }
+
+    public final static class EnumerationExpression extends BasicExpression {
+        public final Set<Literal> literals;
+
+        EnumerationExpression(Map<String, Object> Data) {
+            super(Data);
+            if (Data.getOrDefault("literals", new ArrayList<Map<String, Literal>>()) instanceof List literalData) {
+                literals = (Set<Literal>)literalData.stream().filter(ld -> ld instanceof Map).map(ld -> new Literal((Map)ld)).collect(Collectors.toCollection(TreeSet::new));
+            } else literals = new TreeSet<>();
+        }
+    }
+
+    public final String LUYDataVersion;
+    public final Set<EnumerationExpression> EnumerationExpressions = new TreeSet<>();
+    public final Set<SubstantialTypeExpression> SubstantialTypeExpressions = new TreeSet<>();
+    public final Set<RelationshipTypeExpression> RelationshipTypeExpressions = new TreeSet<>();
+
+    private CMetamodel(String LUYDataVersion) { this.LUYDataVersion = LUYDataVersion.split("/")[1]; }
+
+    /**
+     * Loads a {@code Metamodel} from the specified JSON file and parses its content
+     * to populate the metamodel with corresponding entities such as EnumerationExpression,
+     * SubstantialTypeExpression, or RelationshipTypeExpression.
+     *
+     * @param filename the path to the JSON file containing the metamodel data
+     * @return a {@code Metamodel} instance populated with the parsed data
+     * @throws IOException if an error occurs during reading or parsing the JSON file
+     */
+    public static CMetamodel load(String filename) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        CMetamodel metamodel = new CMetamodel(filename);
+
+        // Parse the JSON file as an array of objects
+        Map<String, Object>[] items = objectMapper.readValue(new File(filename + "_metamodel.json"), Map[].class);
+
+        for (Map<String, Object> item : items) {
+            switch (item.getOrDefault("type", "No type present").toString()) {
+                case "EnumerationExpression": metamodel.EnumerationExpressions.add(new EnumerationExpression(item)); break;
+                case "SubstantialTypeExpression": metamodel.SubstantialTypeExpressions.add(new SubstantialTypeExpression(item)); break;
+                case "RelationshipTypeExpression": metamodel.RelationshipTypeExpressions.add(new RelationshipTypeExpression(item)); break;
+                default:
+                    System.err.println("Unknown metamodel type: " + item.get("type"));
+                    break;
+            }
+        }
+
+        return metamodel;
+    }
+
+    @Override public String toString() {
+        try {
+            long timestampLong = Long.parseLong(LUYDataVersion);
+            // If timestamp appears to be in seconds (less than a reasonable millisecond value) convert to milliseconds
+            if (timestampLong < 10000000000L) timestampLong *= 1000;
+            Instant instant = Instant.ofEpochMilli(timestampLong);
+            LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+            return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (NumberFormatException | java.time.DateTimeException e) { return "Invalid timestamp: " + LUYDataVersion; }
+    }
+}
