@@ -37,36 +37,10 @@ jobs:
       - name: Make staging directory
         run: mkdir staging
 
-      # Install the Gluon License (optional)
-      # Using this step requires you to set a GLUON_LICENSE secret in the secret configuration of your repo. Have a look at https://gluonhq.com/products/mobile/buy for more information about obtaining a license.
-#      - name: Gluon License
-#        uses: gluonhq/gluon-build-license@v1
-#        with:
-#          gluon-license: ${{ secrets.GLUON_LICENSE }}
-
       # Build your project using Maven
       # The desktop profile is used, which means a native build will be created for the host platform (in this case Windows) itself.
       - name: Gluon Build
         run: mvn -Pdesktop gluonfx:build gluonfx:package
-
-      - name: List files after native image
-        run: |
-          echo "=== Repository root contents ==="
-          Get-ChildItem -Force
-          echo ""
-          echo "=== Target directory contents ==="
-          if (Test-Path "target") {
-            Get-ChildItem -Recurse target | Select-Object FullName
-          } else {
-            echo "target directory not found"
-          }
-          echo ""
-          echo "=== JavaFX DLL directory contents ==="
-          if (Test-Path "javafx-dlls") {
-            Get-ChildItem -Recurse javafx-dlls | Select-Object FullName
-          } else {
-            echo "javafx-dlls directory not found"
-          }
 
       - name: Generate version and tag
         id: version
@@ -82,24 +56,3 @@ jobs:
           echo "Generated version: $version"
           echo "Generated tag: $tag"
 
-      - name: Build release package
-        id: archive
-        run: |
-          $archiveName = "LUYViewer-Windows-${{ steps.version.outputs.version }}.zip"
-          
-          $releaseDir = "staging"
-          New-Item -ItemType Directory -Force -Path $releaseDir
-
-#          Copy-Item "config.jsonc" "$releaseDir/"
-#          Copy-Item "LUYViewer.bat" "$releaseDir/"
-#          Copy-Item "README.md" "$releaseDir/"
-#          Copy-Item "target\gluonfx\x86_64-windows\LUYViewer.exe" "$releaseDir/"
-          Copy-Item "target\gluonfx\x86_64-windows\HelloFX.exe" "$releaseDir/"
-          
-          # Create the archive
-          Compress-Archive -Path "$releaseDir/*" -DestinationPath $archiveName -CompressionLevel Optimal
-          echo "✓ Created release archive: $archiveName"
-          $archiveInfo = Get-Item $archiveName
-          echo "Archive size: $(($archiveInfo.Length / 1MB).ToString('F1')) MB"
-          echo "archive_name=$archiveName" >> $env:GITHUB_OUTPUT
-          echo "archive_path=$((Get-Item $archiveName).FullName)" >> $env:GITHUB_OUTPUT
