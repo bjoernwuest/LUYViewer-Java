@@ -68,15 +68,84 @@ jobs:
             echo "javafx-dlls directory not found"
           }
 
-      # Copy the native binary to the staging directory
-      - name: Copy native image to staging
+      - name: Generate version and tag
+        id: version
         run: |
-          $releaseDir = "staging"
-          Copy-Item "target\gluonfx\x86_64-windows\HelloFX.exe" "$releaseDir/"
+          $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+          $version = "1.0.0-$timestamp"
+          $tag = "1.0.0-release-$timestamp"
+          
+          echo "$timestamp=$timestamp" >> $env:GITHUB_OUTPUT
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "tag=$tag" >> $env:GITHUB_OUTPUT
+          
+          echo "Generated version: $version"
+          echo "Generated tag: $tag"
 
-      # Upload the staging directory as a build artifact. You will be able to download this after the build finishes.
-      - name: Upload
-        uses: actions/upload-artifact@v4
+      - name: Build release package
+        id: archive
+        run: |
+          $archiveName = "LUYViewer-Windows-${{ steps.version.outputs.version }}.zip"
+          
+          $releaseDir = "staging"
+          New-Item -ItemType Directory -Force -Path $releaseDir
+
+#          Copy-Item "config.jsonc" "$releaseDir/"
+#          Copy-Item "LUYViewer.bat" "$releaseDir/"
+#          Copy-Item "README.md" "$releaseDir/"
+#          Copy-Item "target\gluonfx\x86_64-windows\LUYViewer.exe" "$releaseDir/"
+          Copy-Item "target\gluonfx\x86_64-windows\HelloFX.exe" "$releaseDir/"
+          
+          # Create the archive
+          Compress-Archive -Path "$releaseDir/*" -DestinationPath $archiveName -CompressionLevel Optimal
+          echo "✓ Created release archive: $archiveName"
+          $archiveInfo = Get-Item $archiveName
+          echo "Archive size: $(($archiveInfo.Length / 1MB).ToString('F1')) MB"
+          echo "archive_name=$archiveName" >> $env:GITHUB_OUTPUT
+          echo "archive_path=$((Get-Item $archiveName).FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: Package
-          path: staging
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "LUYViewer Windows Release ${{ steps.version.outputs.version }}"
+          body: |
+            # LUYViewer Windows Native Binary Release
+            
+            **Version:** ${{ steps.version.outputs.version }}  
+            **Build Time:** ${{ steps.version.outputs.timestamp }}  
+            **Commit:** ${{ github.sha }}
+            
+            ## 🚀 Quick Start
+            1. Download and extract `$archiveName`
+            2. Edit `config.jsonc` with your LUY server details
+            3. Double-click `$LUYViewer.bat` to start the application
+            
+            ## 📦 What's Included
+            - **LUYViewer.exe** - Native Windows binary (no Java required!)
+            - **LUYViewer.bat** - Easy-to-use launcher script
+            - **config.jsonc** - Configuration file template
+            - **README.txt** - Detailed setup instructions
+            
+            ## ⚙️ System Requirements
+            - Windows 10 or later (x64)
+            - No additional software required
+            
+            ## 🐛 Troubleshooting
+            If you encounter issues:
+            1. Make sure all files are extracted to the same folder
+            2. Check that `config.jsonc` is properly configured
+            3. Run from Command Prompt to see error messages
+            4. Check the [Issues](https://github.com/${{ github.repository }}/issues) page
+            
+            ---
+            
+            **Build Information:**
+            - Java Version: ${{ env.JAVA_VERSION }}
+            - Platform: Windows x64
+            - Build Method: GluonFX Native Build
+          files: |
+            ${{ steps.archive.outputs.archive_path }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
