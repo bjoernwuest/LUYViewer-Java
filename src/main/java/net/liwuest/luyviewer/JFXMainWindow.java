@@ -77,6 +77,11 @@ public class JFXMainWindow {
             dialog.setOnFileDownloaded(timestamp -> {
                 Platform.runLater(() -> {
                     fileComboBox.getItems().add(new FileListEntry(timestamp));
+                    // If the fileComboBox was empty, select (and thus load) the first entry
+                    if (1 == fileComboBox.getItems().size()) {
+                        fileComboBox.getSelectionModel().selectFirst();
+                        loadDataModel(fileComboBox.getSelectionModel().getSelectedItem());
+                    }
                 });
             });
             dialog.show();
@@ -103,7 +108,15 @@ public class JFXMainWindow {
         };
 
         loadTask.setOnSucceeded(event -> {
-//            viewerPanel.setData(loadTask.getValue());
+            CDatamodel loadedModel = loadTask.getValue();
+            if (loadedModel != null) {
+                // Wrap the loaded model in a filtered/sorted datamodel
+                CFilteredAndSortedDatamodel filteredModel = new CFilteredAndSortedDatamodel(loadedModel);
+                JFXBuildingBlockList buildingBlockList = new JFXBuildingBlockList(filteredModel);
+                // Set the JFXBuildingBlockList as the center of the main BorderPane
+                Scene scene = stage.getScene();
+                if (scene != null && scene.getRoot() instanceof BorderPane root) root.setCenter(buildingBlockList);
+            }
             statusBar.setText("Ready");
         });
 

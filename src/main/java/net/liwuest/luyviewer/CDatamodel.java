@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
-public final class CDatamodel {
+public class CDatamodel {
   /**
    * Parses a date and time string into a {@link java.time.Instant} object.
    * This function attempts to parse the input string using several common date-time formats.
@@ -59,7 +59,7 @@ public final class CDatamodel {
     throw new IllegalArgumentException("Could not parse date-time string: \"" + dateTimeString + "\" with any known format.");
   }
 
-  private abstract static class Element implements Comparable<Element> {
+  public abstract static class Element implements Comparable<Element> {
     public final int id;
     public final String elementURI;
     public final Instant lastModificationTime;
@@ -70,12 +70,12 @@ public final class CDatamodel {
 
     Element(Map<String, Object> Data, CMetamodel.TypeExpression Type, CMetamodel Metamodel) {
       List<Object> idData = (List)Data.getOrDefault("id", new ArrayList<>());
-      id = idData.isEmpty() ? -1 : Integer.parseInt(idData.get(0).toString()); Data.remove("id");
-      elementURI = Data.getOrDefault("elementURI", "<UNKNOWN>").toString(); Data.remove("elementURI");
+      id = idData.isEmpty() ? -1 : Integer.parseInt(idData.get(0).toString()); Data.put("id", id);
+      elementURI = Data.getOrDefault("elementURI", "<UNKNOWN>").toString(); Data.put("elementURI", elementURI);
       List<Object> lmtData = (List)Data.getOrDefault("lastModificationTime", new ArrayList<>());
-      lastModificationTime = parseToInstant(lmtData.isEmpty() ? "1970-01-01 00:00:00" : lmtData.get(0).toString()); Data.remove("lastModificationTime");
+      lastModificationTime = parseToInstant(lmtData.isEmpty() ? "1970-01-01 00:00:00" : lmtData.get(0).toString()); Data.put("lastModificationTime", lastModificationTime);
       List<Object> lmuData = (List)Data.getOrDefault("lastModificationUser", new ArrayList<>());
-      lastModificationUser = lmuData.isEmpty() ? "<UNKNOWN>>" : lmuData.get(0).toString(); Data.remove("lastModificationUser");
+      lastModificationUser = lmuData.isEmpty() ? "<UNKNOWN>>" : lmuData.get(0).toString(); Data.put("lastModificationUser", lastModificationUser);
 
       // Process enumeration attributes
       Iterator<Map.Entry<String, Object>> iter = Data.entrySet().iterator();
@@ -90,7 +90,7 @@ public final class CDatamodel {
               });
             });
           }
-          iter.remove();
+          dataEntry.setValue(Enumerations.get(f));
         });
       }
 
@@ -102,11 +102,13 @@ public final class CDatamodel {
             switch (feature.type) {
               case "boolean": return Boolean.parseBoolean(value.toString());
               case "date": try { return CDatamodel.parseToInstant(value.toString()); } catch (Exception e) { return null; }
+              case "decimal": return Double.parseDouble(value.toString());
               case "integer": return Integer.parseInt(value.toString());
+              case "io.luy.model.Direction": return CMetamodel.DIRECTIONS.valueOf(value.toString());
               case "richtext": return value;
               case "string": return value;
               default: {
-                System.out.println("CDatamodel -> Element -> parse additional data, unhandled feature type: " + feature.type);
+                System.out.println("CDatamodel -> Element -> parse additional data, unhandled feature type: " + feature.type + " with value: " + value);
                 return value;
               }
             }
@@ -128,7 +130,7 @@ public final class CDatamodel {
                 else System.out.println(feature.persistentName);
               }
             });
-            AdditionalData.remove(feature.persistentName);
+            AdditionalData.put(feature.persistentName, Relationships.get(feature));
           }
         }
       }
@@ -146,13 +148,13 @@ public final class CDatamodel {
     BuildingBlock(Map<String, Object> Data, CMetamodel.SubstantialTypeExpression Type, CMetamodel Metamodel) {
       super(Data, Type, Metamodel);
       List<Object> hierarchy_levelData = (List)Data.getOrDefault("$$hierarchy_level$$", new ArrayList<>());
-      hierarchy_level = hierarchy_levelData.isEmpty() ? -1 : Integer.parseInt(hierarchy_levelData.get(0).toString()); Data.remove("$$hierarchy_level$$");
+      hierarchy_level = hierarchy_levelData.isEmpty() ? -1 : Integer.parseInt(hierarchy_levelData.get(0).toString()); Data.put("$$hierarchy_level$$", hierarchy_level);
       List<Object> nameData = (List)Data.getOrDefault("name", new ArrayList<>());
-      name = nameData.isEmpty() ? "<UNKNOWN>" : nameData.get(0).toString(); Data.remove("name");
+      name = nameData.isEmpty() ? "<UNKNOWN>" : nameData.get(0).toString(); Data.put("name", name);
       List<Object> descriptionData = (List)Data.getOrDefault("description", new ArrayList<>());
-      description = descriptionData.isEmpty() ? "" : descriptionData.get(0).toString(); Data.remove("description");
+      description = descriptionData.isEmpty() ? "" : descriptionData.get(0).toString(); Data.put("description", description);
       List<Object> positionData = (List)Data.getOrDefault("position", new ArrayList<>());
-      position = positionData.isEmpty() ? -1 : Integer.parseInt(positionData.get(0).toString()); Data.remove("position");
+      position = positionData.isEmpty() ? -1 : Integer.parseInt(positionData.get(0).toString()); Data.put("position", position);
       metamodelType = Type;
     }
 

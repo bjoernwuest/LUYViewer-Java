@@ -17,7 +17,15 @@ import java.util.stream.Collectors;
  * Represents a metamodel structure that can be loaded from JSON using Jackson.
  */
 public class CMetamodel {
-    public final static List<String> NonRelationshipFeatureNames = Arrays.asList("boolean", "date", "date_time", "integer", "interfaceDirection", "richtext", "string");
+    public final static List<String> NonRelationshipFeatureNames = Arrays.asList("boolean", "date", "date_time", "decimal", "integer", "interfaceDirection", "io.luy.model.Direction", "richtext", "string");
+    public final static List<String> SelfRelationFeatureNames = Arrays.asList("children", "parent", "baseComponents", "parentComponents", "predecessors", "successors", "generalisation", "specialisations");
+
+    public enum DIRECTIONS {
+        NO_DIRECTION,
+        FIRST_TO_SECOND,
+        SECOND_TO_FIRST,
+        BOTH_DIRECTIONS
+    }
 
     abstract static class BasicExpression implements Comparable<BasicExpression> {
         public final String type;
@@ -48,6 +56,8 @@ public class CMetamodel {
         public final boolean multiple;
         public final boolean isEnumerationAttribute;
         public final boolean isRelationshipFeature;
+        public final boolean isSelfrelationFeature;
+        public final boolean isDirectionFeature;
 
         Feature(Map<String, Object> Data) {
             type = Data.getOrDefault("type", "<UNKNOWN>").toString();
@@ -59,13 +69,15 @@ public class CMetamodel {
             multiple = Boolean.parseBoolean(Data.getOrDefault("multiple", Boolean.FALSE).toString());
             isEnumerationAttribute = type.startsWith("io.luy.model.attribute.EnumAT.");
             isRelationshipFeature = !(NonRelationshipFeatureNames.contains(type) || isEnumerationAttribute);
+            isSelfrelationFeature = SelfRelationFeatureNames.contains(persistentName);
+            isDirectionFeature = "io.luy.model.Direction".equals(type);
         }
 
         @Override public int compareTo(Feature Other) {
-            if ("Id".equals(this.name)) return -1;
-            if ("Id".equals(Other.name)) return 1;
-            if ("Name".equals(this.name)) return -1;
-            if ("Name".equals(Other.name)) return 1;
+            if ("id".equals(this.persistentName)) return -1;
+            if ("id".equals(Other.persistentName)) return 1;
+            if ("name".equals(this.persistentName)) return -1;
+            if ("name".equals(Other.persistentName)) return 1;
             return this.name.compareTo(Other.name);
         }
     }

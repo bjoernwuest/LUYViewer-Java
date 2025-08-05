@@ -9,6 +9,9 @@
   "name":"[Ljava.util.Map;"
 },
 {
+  "name":"[Ljavafx.collections.transformation.SortedList$Element;"
+},
+{
   "name":"[Lsun.security.pkcs.SignerInfo;"
 },
 {
@@ -86,6 +89,10 @@
 {
   "name":"com.sun.scenario.effect.impl.prism.sw.PSWRenderer",
   "methods":[{"name":"createRenderer","parameterTypes":["com.sun.scenario.effect.FilterContext"] }]
+},
+{
+  "name":"com.sun.scenario.effect.impl.sw.sse.SSEBoxShadowPeer",
+  "methods":[{"name":"<init>","parameterTypes":["com.sun.scenario.effect.FilterContext","com.sun.scenario.effect.impl.Renderer","java.lang.String"] }]
 },
 {
   "name":"com.sun.scenario.effect.impl.sw.sse.SSELinearConvolveShadowPeer",
@@ -184,6 +191,9 @@
 },
 {
   "name":"javafx.scene.control.Labeled"
+},
+{
+  "name":"javafx.scene.control.TableColumnBase"
 },
 {
   "name":"javafx.scene.effect.Effect"

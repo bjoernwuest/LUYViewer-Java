@@ -104,9 +104,7 @@ public class JFXDownloadDialog {
 
         // Enter key handling
         passwordField.setOnAction(e -> {
-            if (!downloadButton.isDisabled()) {
-                downloadFile();
-            }
+            if (!downloadButton.isDisabled()) downloadFile();
         });
 
         usernameField.setOnAction(e -> passwordField.requestFocus());
@@ -141,9 +139,7 @@ public class JFXDownloadDialog {
         downloadTask.setOnSucceeded(e -> {
             Platform.runLater(() -> {
                 statusLabel.setText("Download completed successfully");
-                if (onFileDownloaded != null) {
-                    onFileDownloaded.accept(downloadTask.getValue());
-                }
+                if (onFileDownloaded != null) onFileDownloaded.accept(downloadTask.getValue());
                 dialog.close();
             });
         });
