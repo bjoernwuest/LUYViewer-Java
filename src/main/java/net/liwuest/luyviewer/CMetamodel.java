@@ -28,13 +28,15 @@ public class CMetamodel {
     }
 
     abstract static class BasicExpression implements Comparable<BasicExpression> {
+        protected final CMetamodel _metamodel;
         public final String type;
         public final String persistentName;
         public final String name;
         public final String pluralName;
         public final String description;
 
-        BasicExpression(Map<String, Object> Data) {
+        BasicExpression(CMetamodel Metamodel, Map<String, Object> Data) {
+            _metamodel = Metamodel;
             type = Data.getOrDefault("type", "<UNKNOWN>").toString();
             persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
             name = Data.getOrDefault("name", "<UNKNOWN>").toString();
@@ -47,6 +49,7 @@ public class CMetamodel {
     }
 
     public final static class Feature implements Comparable<Feature> {
+        protected final CMetamodel _metamodel;
         public final String type;
         public final String persistentName;
         public final String name;
@@ -59,7 +62,8 @@ public class CMetamodel {
         public final boolean isSelfrelationFeature;
         public final boolean isDirectionFeature;
 
-        Feature(Map<String, Object> Data) {
+        Feature(CMetamodel Metamodel, Map<String, Object> Data) {
+            _metamodel = Metamodel;
             type = Data.getOrDefault("type", "<UNKNOWN>").toString();
             persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
             name = Data.getOrDefault("name", "<UNKNOWN>").toString();
@@ -80,27 +84,30 @@ public class CMetamodel {
             if ("name".equals(Other.persistentName)) return 1;
             return this.name.compareTo(Other.name);
         }
+
+        public boolean referencesBuildingblock() { return _metamodel.SubstantialTypeExpressions.stream().anyMatch(r -> r.persistentName.equals(type)); }
+        public RelationshipTypeExpression getRTE() { return _metamodel.RelationshipTypeExpressions.stream().filter(rte -> rte.persistentName.equals(type)).findFirst().orElse(null); }
     }
 
     public abstract static class TypeExpression extends BasicExpression {
         public final String abbreviation;
         public final Set<Feature> features;
 
-        TypeExpression(Map<String, Object> Data) {
-            super(Data);
+        TypeExpression(CMetamodel Metamodel, Map<String, Object> Data) {
+            super(Metamodel, Data);
             abbreviation = Data.getOrDefault("abbreviation", "<UNKNOWN>").toString();
             if (Data.getOrDefault("features", new ArrayList<Map<String, Object>>()) instanceof List featureData) {
-                features = (Set<Feature>)featureData.stream().filter(fd -> fd instanceof Map).map(fd -> new Feature((Map)fd)).filter(Objects::nonNull).collect(Collectors.toCollection(TreeSet::new));
+                features = (Set<Feature>)featureData.stream().filter(fd -> fd instanceof Map).map(fd -> new Feature(Metamodel, (Map)fd)).filter(Objects::nonNull).collect(Collectors.toCollection(TreeSet::new));
             } else features = new TreeSet<>();
         }
     }
 
     public final static class RelationshipTypeExpression extends TypeExpression {
-        RelationshipTypeExpression(Map<String, Object> Data) { super(Data); }
+        RelationshipTypeExpression(CMetamodel Metamodel, Map<String, Object> Data) { super(Metamodel, Data); }
     }
 
     public final static class SubstantialTypeExpression extends TypeExpression {
-        SubstantialTypeExpression(Map<String, Object> Data) { super(Data); }
+        SubstantialTypeExpression(CMetamodel Metamodel, Map<String, Object> Data) { super(Metamodel, Data); }
     }
 
     public final static class Literal implements Comparable<Literal> {
@@ -131,8 +138,8 @@ public class CMetamodel {
     public final static class EnumerationExpression extends BasicExpression {
         public final Set<Literal> literals;
 
-        EnumerationExpression(Map<String, Object> Data) {
-            super(Data);
+        EnumerationExpression(CMetamodel Metamodel, Map<String, Object> Data) {
+            super(Metamodel, Data);
             if (Data.getOrDefault("literals", new ArrayList<Map<String, Literal>>()) instanceof List literalData) {
                 literals = (Set<Literal>)literalData.stream().filter(ld -> ld instanceof Map).map(ld -> new Literal((Map)ld)).collect(Collectors.toCollection(TreeSet::new));
             } else literals = new TreeSet<>();
@@ -164,9 +171,9 @@ public class CMetamodel {
 
         for (Map<String, Object> item : items) {
             switch (item.getOrDefault("type", "No type present").toString()) {
-                case "EnumerationExpression": metamodel.EnumerationExpressions.add(new EnumerationExpression(item)); break;
-                case "SubstantialTypeExpression": metamodel.SubstantialTypeExpressions.add(new SubstantialTypeExpression(item)); break;
-                case "RelationshipTypeExpression": metamodel.RelationshipTypeExpressions.add(new RelationshipTypeExpression(item)); break;
+                case "EnumerationExpression": metamodel.EnumerationExpressions.add(new EnumerationExpression(metamodel, item)); break;
+                case "SubstantialTypeExpression": metamodel.SubstantialTypeExpressions.add(new SubstantialTypeExpression(metamodel, item)); break;
+                case "RelationshipTypeExpression": metamodel.RelationshipTypeExpressions.add(new RelationshipTypeExpression(metamodel, item)); break;
                 default:
                     System.err.println("Unknown metamodel type: " + item.get("type"));
                     break;

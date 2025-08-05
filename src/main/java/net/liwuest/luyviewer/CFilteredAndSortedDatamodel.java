@@ -57,6 +57,13 @@ public final class CFilteredAndSortedDatamodel {
     return this;
   }
 
+  public synchronized Set<CMetamodel.Feature> getFeaturesOfRelation(CMetamodel.Feature RelationFeature) {
+    if ((null == RelationFeature) || RelationFeature.isSelfrelationFeature || !RelationFeature.isRelationshipFeature) return null;
+    CMetamodel.RelationshipTypeExpression relationshipType = RelationFeature.getRTE();
+    if (null != relationshipType) return relationshipType.features;
+    return null;
+  }
+
   public synchronized CFilteredAndSortedDatamodel hideFeature(CMetamodel.Feature Feature) {
     if ((null != Feature) && ("name" != Feature.persistentName) && ("id" != Feature.persistentName)) {
       if (m_HiddenFeatures.add(Feature)) CEventBus.publish(new FeatureHidden(Feature));

@@ -15,7 +15,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class JFXBuildingBlockList extends Pane {
     private final CFilteredAndSortedDatamodel Data;
@@ -32,8 +31,23 @@ public class JFXBuildingBlockList extends Pane {
         VBox vbox = new VBox();
         vbox.setSpacing(5);
         vbox.setPadding(new Insets(10, 10, 10, 10));
-        vbox.getChildren().addAll(typeComboBox, tableView);
+        vbox.getChildren().add(typeComboBox);
+        // TableView in eine horizontale ScrollPane einbetten, aber vertikales Scrollen der TableView überlassen
+        javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane();
+        scrollPane.setContent(tableView);
+        scrollPane.setFitToHeight(true); // TableView soll volle Höhe nutzen
+        scrollPane.setFitToWidth(false); // TableView kann breiter als der sichtbare Bereich sein
+        scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED); // Horizontalen Scrollbar anzeigen
+        scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        // Breite der ScrollPane an die Breite des Parent-Pane binden
+        scrollPane.prefViewportWidthProperty().bind(this.widthProperty().subtract(20)); // 20 für Padding
+        vbox.getChildren().add(scrollPane);
+        vbox.setFillWidth(true);
+        VBox.setVgrow(scrollPane, javafx.scene.layout.Priority.ALWAYS);
         this.getChildren().add(vbox);
+        tableView.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        // TableView: horizontalen Scrollbar per CSS ausblenden
+        tableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
         // Fill ComboBox with types
         Set<CMetamodel.TypeExpression> types = Data.getTypes();
@@ -58,39 +72,37 @@ public class JFXBuildingBlockList extends Pane {
         int colIdx = 0;
         for (CMetamodel.Feature feature : features) {
             final int columnIndex = colIdx;
-            TableColumn<CDatamodel.Element, Node> col = new TableColumn<>(feature.name);
-            col.setCellValueFactory(cellData -> {
-                CDatamodel.Element element = cellData.getValue();
-                int rowIndex = tableView.getItems().indexOf(element);
-                return new javafx.beans.property.SimpleObjectProperty<>(renderCell(selectedType, element, feature, rowIndex, columnIndex));
-            });
-            // Prevent reordering of the first two columns
-            // and prevent moving any other column before them
-            tableView.getColumns().addListener((javafx.collections.ListChangeListener<TableColumn<CDatamodel.Element, ?>>) change -> {
-                while (change.next()) {
-                    if (change.wasPermutated() || change.wasReplaced()) {
-                        // Ensure first two columns remain at index 0 and 1
-                        for (int i = 0; i < 2 && i < tableView.getColumns().size(); i++) {
-                            TableColumn<CDatamodel.Element, ?> col2 = tableView.getColumns().get(i);
-                            if (col2.getText() == null || !col2.getText().equals(features.toArray(new CMetamodel.Feature[0])[i].name)) {
-                                // Move the column back to its original position
-                                TableColumn<CDatamodel.Element, ?> correctCol = null;
-                                for (TableColumn<CDatamodel.Element, ?> c : tableView.getColumns()) {
-                                    if (c.getText() != null && c.getText().equals(features.toArray(new CMetamodel.Feature[0])[i].name)) {
-                                        correctCol = c;
-                                        break;
-                                    }
-                                }
-                                if (correctCol != null) {
-                                    tableView.getColumns().remove(correctCol);
-                                    tableView.getColumns().add(i, correctCol);
-                                }
-                            }
-                        }
-                    }
+            if (feature.isRelationshipFeature && !feature.isSelfrelationFeature) {
+                Set<CMetamodel.Feature> relFeatures = Data.getFeaturesOfRelation(feature);
+                javafx.scene.control.TableColumn<CDatamodel.Element, Node> parentCol = new TableColumn<>(feature.name);
+                int relColIdx = 0;
+                for (CMetamodel.Feature relFeature : relFeatures) {
+                    final int relColumnIndex = relColIdx;
+                    TableColumn<CDatamodel.Element, Node> subCol = new TableColumn<>(relFeature.name);
+                    subCol.setCellValueFactory(cellData -> {
+                        CDatamodel.Element element = cellData.getValue();
+                        int rowIndex = tableView.getItems().indexOf(element);
+                        return new javafx.beans.property.SimpleObjectProperty<>(renderRelationshipCell(selectedType, element, feature, relFeature, rowIndex, columnIndex, relColumnIndex));
+                    });
+                    subCol.setResizable(true);
+                    subCol.setMinWidth(120); // Mindestbreite für Subspalten
+                    parentCol.getColumns().add(subCol);
+                    relColIdx++;
                 }
-            });
-            tableView.getColumns().add(col);
+                parentCol.setResizable(true);
+                parentCol.setMinWidth(120 * Math.max(1, relFeatures.size())); // Mindestbreite für Parent
+                tableView.getColumns().add(parentCol);
+            } else {
+                TableColumn<CDatamodel.Element, Node> col = new TableColumn<>(feature.name);
+                col.setCellValueFactory(cellData -> {
+                    CDatamodel.Element element = cellData.getValue();
+                    int rowIndex = tableView.getItems().indexOf(element);
+                    return new javafx.beans.property.SimpleObjectProperty<>(renderCell(selectedType, element, feature, rowIndex, columnIndex));
+                });
+                col.setResizable(true);
+                col.setMinWidth(120); // Mindestbreite für normale Spalten
+                tableView.getColumns().add(col);
+            }
             colIdx++;
         }
 
@@ -130,6 +142,7 @@ public class JFXBuildingBlockList extends Pane {
                 if ((null != value) && (value instanceof Instant inst)) value = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()).format(inst); else value = "";
                 return new Label(value.toString());
             }
+            case "decimal":
             case "integer":
             case "richtext":
             case "string": {
@@ -137,8 +150,24 @@ public class JFXBuildingBlockList extends Pane {
                 if (value instanceof List valueList) value = valueList.isEmpty() ? "" : valueList.get(0);
                 return new Label(value.toString());
             }
+            case "io.luy.model.Direction": {
+                Object value = Element.AdditionalData.getOrDefault(Feature.persistentName, CMetamodel.DIRECTIONS.NO_DIRECTION);
+                if (value instanceof List valueList) value = valueList.isEmpty() ? CMetamodel.DIRECTIONS.NO_DIRECTION : valueList.get(0);
+                if (!(value instanceof CMetamodel.DIRECTIONS)) value = CMetamodel.DIRECTIONS.valueOf(value.toString());
+                if (value instanceof CMetamodel.DIRECTIONS dirValue) {
+                    Label label = switch (dirValue) {
+                        case FIRST_TO_SECOND -> new Label("\u2192"); // →
+                        case SECOND_TO_FIRST -> new Label("\u2190"); // ←
+                        case BOTH_DIRECTIONS -> new Label("\u2194"); // ↔
+                        default -> new Label("-");
+                    };
+                    label.setStyle("-fx-font-size: 16px; -fx-alignment: center;");
+                    return label;
+                }
+                return new Label("-");
+            }
             default: {
-                if (Feature.isSelfrelationFeature) {
+                if (Feature.isSelfrelationFeature || Feature.referencesBuildingblock()) {
                     java.util.List<CDatamodel.BuildingBlock> blocks = (java.util.List<CDatamodel.BuildingBlock>) Element.AdditionalData.getOrDefault(Feature.persistentName, new java.util.ArrayList<CDatamodel.BuildingBlock>());
                     java.util.List<CDatamodel.BuildingBlock> sortedBlocks = new java.util.ArrayList<>(blocks);
                     sortedBlocks.sort(java.util.Comparator.comparing(block -> block.name != null ? block.name : ""));
@@ -159,7 +188,6 @@ public class JFXBuildingBlockList extends Pane {
                     Object value = Element.AdditionalData.getOrDefault(Feature.persistentName, new java.util.ArrayList<CMetamodel.Literal>());
                     if (value instanceof List valueList) {
                         if (valueList.isEmpty()) return new Label("");
-
                         javafx.scene.layout.VBox vbox = new javafx.scene.layout.VBox();
                         vbox.setSpacing(2);
                         vbox.setFillWidth(true);
@@ -181,9 +209,39 @@ public class JFXBuildingBlockList extends Pane {
                         return vbox;
                     }
                 }
-                if (!Feature.isRelationshipFeature) System.out.println("Cell " + Row + "/" + Column + " - Feature type: " + Feature.type + " - Element: " + Element.elementURI);
+                System.out.println("Cell " + Row + "/" + Column + " - Feature type: " + Feature.type + " (ref. BB: " + Feature.referencesBuildingblock() + ") - Element: " + Element.elementURI);
                 return new Label("todo");
             }
         }
+    }
+
+    /**
+     * Renders a cell for a relationship feature's sub-feature (nested table cell).
+     */
+    Node renderRelationshipCell(CMetamodel.TypeExpression Type, CDatamodel.Element Element, CMetamodel.Feature RelationshipFeature, CMetamodel.Feature SubFeature, int Row, int Column, int SubColumn) {
+        final double ROW_HEIGHT = 24.0; // Feste Höhe für jede Zeile/Node
+        javafx.scene.layout.VBox vbox = new javafx.scene.layout.VBox();
+        vbox.setSpacing(2);
+        vbox.setFillWidth(true);
+        if (Element.AdditionalData.getOrDefault(RelationshipFeature.persistentName, new ArrayList<>()) instanceof List elements) {
+            for (Object e : elements) {
+                Node node = renderCell(Type, (CDatamodel.Element)e, SubFeature, Row, SubColumn);
+                if (node instanceof javafx.scene.control.Label label) {
+                    label.setMinHeight(ROW_HEIGHT);
+                    label.setPrefHeight(ROW_HEIGHT);
+                    label.setMaxHeight(ROW_HEIGHT);
+                } else if (node instanceof javafx.scene.layout.Region region) {
+                    region.setMinHeight(ROW_HEIGHT);
+                    region.setPrefHeight(ROW_HEIGHT);
+                    region.setMaxHeight(ROW_HEIGHT);
+                }
+                vbox.getChildren().add(node);
+            }
+        }
+        // Optional: VBox auf Gesamthöhe setzen
+        vbox.setMinHeight((ROW_HEIGHT+2) * Math.max(1, vbox.getChildren().size()));
+        vbox.setPrefHeight((ROW_HEIGHT+2) * Math.max(1, vbox.getChildren().size()));
+        vbox.setMaxHeight((ROW_HEIGHT+2) * Math.max(1, vbox.getChildren().size()));
+        return vbox;
     }
 }
