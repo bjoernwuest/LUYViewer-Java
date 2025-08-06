@@ -1,4 +1,4 @@
-package net.liwuest.luyviewer;
+package net.liwuest.luyviewer.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -81,7 +80,7 @@ public class CDatamodel {
       Iterator<Map.Entry<String, Object>> iter = Data.entrySet().iterator();
       while (iter.hasNext()) {
         Map.Entry<String, Object> dataEntry = iter.next();
-        Type.features.stream().filter(f -> f.isEnumerationAttribute && f.persistentName.equals(dataEntry.getKey())).findFirst().ifPresent(f -> {
+        Type.features.stream().filter(f -> (CMetamodel.FeatureType.ENUMERATION == f.featureType) && f.persistentName.equals(dataEntry.getKey())).findFirst().ifPresent(f -> {
           Enumerations.putIfAbsent(f, new ArrayList<>());
           if ((dataEntry.getValue() instanceof List valueList) && !valueList.isEmpty()) {
             Metamodel.EnumerationExpressions.stream().filter(ee -> ee.persistentName.equals(f.type)).findFirst().ifPresent(ee -> {
@@ -98,15 +97,19 @@ public class CDatamodel {
       // Transform types of additional data
       AdditionalData.forEach((k, v) -> {
         Type.features.stream().filter(f -> f.persistentName.equals(k)).findFirst().ifPresent(feature -> {
-          if (!feature.isRelationshipFeature && !feature.isEnumerationAttribute && (v instanceof List valueList)) AdditionalData.put(k, valueList.stream().map(value -> {
-            switch (feature.type) {
-              case "boolean": return Boolean.parseBoolean(value.toString());
-              case "date": try { return CDatamodel.parseToInstant(value.toString()); } catch (Exception e) { return null; }
-              case "decimal": return Double.parseDouble(value.toString());
-              case "integer": return Integer.parseInt(value.toString());
-              case "io.luy.model.Direction": return CMetamodel.DIRECTIONS.valueOf(value.toString());
-              case "richtext": return value;
-              case "string": return value;
+          if (v instanceof List valueList) AdditionalData.put(k, valueList.stream().map(value -> {
+            switch (feature.featureType) {
+              case BOOLEAN: return Boolean.parseBoolean(value.toString());
+              case DATE: try { return CDatamodel.parseToInstant(value.toString()); } catch (Exception e) { return null; }
+              case DATE_TIME: try { return CDatamodel.parseToInstant(value.toString()); } catch (Exception e) { return null; }
+              case DECIMAL: return Double.parseDouble(value.toString());
+              case INTEGER: return Integer.parseInt(value.toString());
+              case RICHTEXT: return value;
+              case STRING: return value;
+              case INTERFACE_DIRECTION: return CMetamodel.DIRECTIONS.valueOf(value.toString());
+              case ENUMERATION: return value;
+              case RELATION: return value;
+              case SELF_RELATION: return value;
               default: {
                 System.out.println("CDatamodel -> Element -> parse additional data, unhandled feature type: " + feature.type + " with value: " + value);
                 return value;
@@ -120,7 +123,7 @@ public class CDatamodel {
     abstract Set<CMetamodel.Feature> getFeatures();
     final void parseRelationships(CDatamodel datamodel) {
       for (CMetamodel.Feature feature : getFeatures()) {
-        if (feature.isRelationshipFeature) {
+        if ((CMetamodel.FeatureType.RELATION == feature.featureType) || (CMetamodel.FeatureType.SELF_RELATION == feature.featureType)) {
           Relationships.putIfAbsent(feature, new ArrayList<Element>());
           if (AdditionalData.get(feature.persistentName) instanceof List data) {
             data.forEach(e -> {
@@ -134,6 +137,17 @@ public class CDatamodel {
           }
         }
       }
+    }
+
+    /**
+     * Returns the maximum number of values for a single feature.
+     * @return Maximum number of values for a single feature.
+     */
+    public final int getMaxValues() {
+      return AdditionalData.values().stream().map(v -> {
+        if (v instanceof Collection c) return Math.max(1, c.size());
+        else return 1;
+      }).max((x, y) -> Integer.compare(x, y)).orElse(1);
     }
 
     @Override public int compareTo(Element o) { return Integer.compare(this.id, o.id); }

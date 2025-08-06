@@ -3,6 +3,7 @@ package net.liwuest.luyviewer;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -10,6 +11,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import net.liwuest.luyviewer.model.CDatamodel;
+import net.liwuest.luyviewer.model.CFilteredAndSortedDatamodel;
+import net.liwuest.luyviewer.model.CMetamodel;
+import net.liwuest.luyviewer.rule.CFilter;
+import net.liwuest.luyviewer.rule.JFXRuleBuilderDialog;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -20,6 +27,8 @@ public class JFXBuildingBlockList extends Pane {
     private final CFilteredAndSortedDatamodel Data;
     private final ComboBox<CMetamodel.TypeExpression> typeComboBox;
     private final TableView<CDatamodel.Element> tableView;
+    private final Map<CMetamodel.Feature, CFilteredAndSortedDatamodel.SortOrder> sortings = new HashMap<>();
+    private CMetamodel.TypeExpression currentSelectedType;
 
     public JFXBuildingBlockList(CFilteredAndSortedDatamodel Data) {
         assert null != Data;
@@ -31,7 +40,27 @@ public class JFXBuildingBlockList extends Pane {
         VBox vbox = new VBox();
         vbox.setSpacing(5);
         vbox.setPadding(new Insets(10, 10, 10, 10));
-        vbox.getChildren().add(typeComboBox);
+        // ComboBox + Filter-Button in eine HBox
+        HBox typeAndFilterBox = new HBox(8);
+        typeAndFilterBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        typeAndFilterBox.getChildren().add(typeComboBox);
+        // Filter-Button
+        Button filterButton = new Button("Filter");
+        updateFilterButtonIcon(filterButton);
+        filterButton.setOnAction(e -> {
+            if (null != currentSelectedType) {
+                CFilter filter = Data.getFilter(currentSelectedType);
+                filter = (null == filter) ? new CFilter(currentSelectedType) : filter;
+                JFXRuleBuilderDialog dialog = new net.liwuest.luyviewer.rule.JFXRuleBuilderDialog(filter, f -> {
+                    Data.setFilter(f, currentSelectedType);
+                    updateFilterButtonIcon(filterButton);
+                    updateTable();
+                });
+                dialog.showAndWait();
+            }
+        });
+        typeAndFilterBox.getChildren().add(filterButton);
+        vbox.getChildren().add(typeAndFilterBox);
         // TableView in eine horizontale ScrollPane einbetten, aber vertikales Scrollen der TableView überlassen
         javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane();
         scrollPane.setContent(tableView);
@@ -50,14 +79,53 @@ public class JFXBuildingBlockList extends Pane {
         // TableView: horizontalen Scrollbar per CSS ausblenden
         tableView.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
+        // Custom sort handling
+        tableView.getSortOrder().addListener((javafx.collections.ListChangeListener<TableColumn<CDatamodel.Element, ?>>) change -> {
+            while (change.next()) {
+                if (change.wasAdded() && !change.getAddedSubList().isEmpty()) {
+                    TableColumn<CDatamodel.Element, ?> col = change.getAddedSubList().get(0);
+                    Object userData = col.getUserData();
+                    if (userData instanceof CMetamodel.Feature feature && feature.isSortable) {
+                        CFilteredAndSortedDatamodel.SortOrder nextOrder = getNextSortorder(feature);
+                        Data.sort(currentSelectedType, feature, nextOrder);
+                        Set<? extends CDatamodel.Element> elements = Data.getFilteredAndSortedData(typeComboBox.getSelectionModel().getSelectedItem());
+                        if (elements != null) tableView.setItems(FXCollections.observableArrayList(elements));
+                        col.setText(feature.name + switch (nextOrder) {
+                            case ASCENDING -> "  \u25B2"; // ▲
+                            case DESCENDING -> "  \u25BC"; // ▼
+                            default -> "";
+                        });
+                    }
+                }
+            }
+        });
+
         // Fill ComboBox with types
         Set<CMetamodel.TypeExpression> types = Data.getTypes();
         typeComboBox.setItems(FXCollections.observableArrayList(types));
-        if (!types.isEmpty()) { typeComboBox.getSelectionModel().select(0); }
+        if (!types.isEmpty()) {
+            typeComboBox.getSelectionModel().select(0);
+            currentSelectedType = typeComboBox.getSelectionModel().getSelectedItem();
+        }
 
         // Update table when type changes
-        typeComboBox.setOnAction(e -> updateTable());
+        typeComboBox.setOnAction(e -> {
+            currentSelectedType = typeComboBox.getSelectionModel().getSelectedItem();
+            updateTable();
+        });
         updateTable();
+    }
+
+    private synchronized CFilteredAndSortedDatamodel.SortOrder getNextSortorder(CMetamodel.Feature Feature) {
+        sortings.putIfAbsent(Feature, CFilteredAndSortedDatamodel.SortOrder.UNSORTED);
+        CFilteredAndSortedDatamodel.SortOrder result = switch (sortings.get(Feature)) {
+            case UNSORTED -> CFilteredAndSortedDatamodel.SortOrder.ASCENDING;
+            case ASCENDING -> CFilteredAndSortedDatamodel.SortOrder.DESCENDING;
+            case DESCENDING -> CFilteredAndSortedDatamodel.SortOrder.UNSORTED;
+            default -> CFilteredAndSortedDatamodel.SortOrder.UNSORTED;
+        };
+        sortings.put(Feature, result);
+        return result;
     }
 
     private void updateTable() {
@@ -73,20 +141,24 @@ public class JFXBuildingBlockList extends Pane {
         int colIdx = 0;
         for (CMetamodel.Feature feature : features) {
             final int columnIndex = colIdx;
-            if (feature.isRelationshipFeature && !feature.isSelfrelationFeature) {
+            if ((CMetamodel.FeatureType.RELATION == feature.featureType) && !(CMetamodel.FeatureType.SELF_RELATION == feature.featureType)) {
                 Set<CMetamodel.Feature> relFeatures = Data.getFeaturesOfRelation(feature);
                 javafx.scene.control.TableColumn<CDatamodel.Element, Node> parentCol = new TableColumn<>(feature.name);
                 int relColIdx = 0;
                 for (CMetamodel.Feature relFeature : relFeatures) {
                     final int relColumnIndex = relColIdx;
                     TableColumn<CDatamodel.Element, Node> subCol = new TableColumn<>(relFeature.name);
+                    subCol.setUserData(relFeature);
                     subCol.setCellValueFactory(cellData -> {
                         CDatamodel.Element element = cellData.getValue();
                         int rowIndex = tableView.getItems().indexOf(element);
                         return new javafx.beans.property.SimpleObjectProperty<>(renderRelationshipCell(selectedType, element, feature, relFeature, rowIndex, columnIndex, relColumnIndex));
                     });
                     subCol.setResizable(true);
-                    subCol.setMinWidth(120); // Mindestbreite für Subspalten
+                    // Dynamische Breite für Subspalten
+                    double headerWidth = computeTextWidth(subCol.getText());
+                    double cellWidth = computeMaxCellWidth(subCol, tableView, 10); // 10 Zeilen prüfen
+                    subCol.setPrefWidth(Math.max(120, Math.max(headerWidth, cellWidth) + 24));
                     // Disable sorting if not sortable
                     subCol.setSortable(relFeature.isSortable);
                     parentCol.getColumns().add(subCol);
@@ -98,13 +170,17 @@ public class JFXBuildingBlockList extends Pane {
                 tableView.getColumns().add(parentCol);
             } else {
                 TableColumn<CDatamodel.Element, Node> col = new TableColumn<>(feature.name);
+                col.setUserData(feature);
                 col.setCellValueFactory(cellData -> {
                     CDatamodel.Element element = cellData.getValue();
                     int rowIndex = tableView.getItems().indexOf(element);
                     return new javafx.beans.property.SimpleObjectProperty<>(renderCell(selectedType, element, feature, rowIndex, columnIndex));
                 });
                 col.setResizable(true);
-                col.setMinWidth(120); // Mindestbreite für normale Spalten
+                // Dynamische Breite für normale Spalten
+                double headerWidth = computeTextWidth(col.getText());
+                double cellWidth = computeMaxCellWidth(col, tableView, 10); // 10 Zeilen prüfen
+                col.setPrefWidth(Math.max(120, Math.max(headerWidth, cellWidth) + 24));
                 // Disable sorting if not sortable
                 col.setSortable(feature.isSortable);
                 tableView.getColumns().add(col);
@@ -173,7 +249,7 @@ public class JFXBuildingBlockList extends Pane {
                 return new Label("-");
             }
             default: {
-                if (Feature.isSelfrelationFeature || Feature.referencesBuildingblock()) {
+                if ((CMetamodel.FeatureType.SELF_RELATION == Feature.featureType) || Feature.referencesBuildingblock()) {
                     java.util.List<CDatamodel.BuildingBlock> blocks = (java.util.List<CDatamodel.BuildingBlock>) Element.AdditionalData.getOrDefault(Feature.persistentName, new java.util.ArrayList<CDatamodel.BuildingBlock>());
                     java.util.List<CDatamodel.BuildingBlock> sortedBlocks = new java.util.ArrayList<>(blocks);
                     sortedBlocks.sort(java.util.Comparator.comparing(block -> block.name != null ? block.name : ""));
@@ -190,7 +266,7 @@ public class JFXBuildingBlockList extends Pane {
                     vbox.getChildren().addAll(buttons);
                     return vbox;
                 }
-                if (Feature.isEnumerationAttribute) {
+                if (CMetamodel.FeatureType.ENUMERATION == Feature.featureType) {
                     Object value = Element.AdditionalData.getOrDefault(Feature.persistentName, new java.util.ArrayList<CMetamodel.Literal>());
                     if (value instanceof List valueList) {
                         if (valueList.isEmpty()) return new Label("");
@@ -229,25 +305,59 @@ public class JFXBuildingBlockList extends Pane {
         javafx.scene.layout.VBox vbox = new javafx.scene.layout.VBox();
         vbox.setSpacing(2);
         vbox.setFillWidth(true);
+        int maxRows = 0;
         if (Element.AdditionalData.getOrDefault(RelationshipFeature.persistentName, new ArrayList<>()) instanceof List elements) {
-            for (Object e : elements) {
-                Node node = renderCell(Type, (CDatamodel.Element)e, SubFeature, Row, SubColumn);
-                if (node instanceof javafx.scene.control.Label label) {
-                    label.setMinHeight(ROW_HEIGHT);
-                    label.setPrefHeight(ROW_HEIGHT);
-                    label.setMaxHeight(ROW_HEIGHT);
-                } else if (node instanceof javafx.scene.layout.Region region) {
-                    region.setMinHeight(ROW_HEIGHT);
-                    region.setPrefHeight(ROW_HEIGHT);
-                    region.setMaxHeight(ROW_HEIGHT);
+            for (Object elem : elements) {
+                if (elem instanceof CDatamodel.Element e) {
+                    maxRows += e.getMaxValues();
+                    Node node = renderCell(Type, (CDatamodel.Element)e, SubFeature, Row, SubColumn);
+                    if (node instanceof javafx.scene.control.Label label) {
+                        label.setMinHeight(ROW_HEIGHT);
+                        label.setPrefHeight(ROW_HEIGHT);
+                        label.setMaxHeight(ROW_HEIGHT);
+                    } else if (node instanceof javafx.scene.layout.Region region) {
+                        region.setMinHeight(ROW_HEIGHT);
+                        region.setPrefHeight(ROW_HEIGHT);
+                        region.setMaxHeight(ROW_HEIGHT);
+                    }
+                    vbox.getChildren().add(node);
                 }
-                vbox.getChildren().add(node);
             }
         }
-        // Optional: VBox auf Gesamthöhe setzen
-        vbox.setMinHeight((ROW_HEIGHT+2) * Math.max(1, vbox.getChildren().size()));
-        vbox.setPrefHeight((ROW_HEIGHT+2) * Math.max(1, vbox.getChildren().size()));
-        vbox.setMaxHeight((ROW_HEIGHT+2) * Math.max(1, vbox.getChildren().size()));
+        vbox.setMinHeight((ROW_HEIGHT+2) * Math.max(1, maxRows));
+        vbox.setPrefHeight((ROW_HEIGHT+2) * Math.max(1, maxRows));
+        vbox.setMaxHeight((ROW_HEIGHT+2) * Math.max(1, maxRows));
         return vbox;
+    }
+
+    // Hilfsmethoden für dynamische Spaltenbreite
+    private double computeTextWidth(String text) {
+        javafx.scene.text.Text helper = new javafx.scene.text.Text(text);
+        helper.setFont(javafx.scene.text.Font.getDefault());
+        return helper.getLayoutBounds().getWidth();
+    }
+
+    private double computeMaxCellWidth(TableColumn<CDatamodel.Element, Node> col, TableView<CDatamodel.Element> table, int maxRows) {
+        double max = 0;
+        int count = 0;
+        for (CDatamodel.Element elem : table.getItems()) {
+            if (count++ > maxRows) break;
+            Node node = col.getCellObservableValue(elem) != null ? (Node) col.getCellObservableValue(elem).getValue() : null;
+            if (node instanceof Label label) {
+                double w = computeTextWidth(label.getText());
+                if (w > max) max = w;
+            }
+        }
+        return max;
+    }
+
+    private void updateFilterButtonIcon(Button filterButton) {
+        // Icons als Unicode oder SVG (hier Unicode-Filter + grüner Haken)
+        boolean valid = Data.getFilter(currentSelectedType) != null && Data.getFilter(currentSelectedType).isValid();
+        String filterIcon = "\uD83D\uDD0D"; // Unicode Lupe als Platzhalter für Filter
+        String checkIcon = valid ? " \u2714" : ""; // Grüner Haken
+        filterButton.setText("Filter" + checkIcon);
+        // Optional: Tooltip
+        filterButton.setTooltip(new javafx.scene.control.Tooltip(valid ? "Filter ist gültig" : "Filter ist nicht gesetzt oder ungültig"));
     }
 }

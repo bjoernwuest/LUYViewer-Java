@@ -1,5 +1,5 @@
 
-package net.liwuest.luyviewer;
+package net.liwuest.luyviewer.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,7 +17,20 @@ import java.util.stream.Collectors;
  * Represents a metamodel structure that can be loaded from JSON using Jackson.
  */
 public class CMetamodel {
-    public final static List<String> NonRelationshipFeatureNames = Arrays.asList("boolean", "date", "date_time", "decimal", "integer", "interfaceDirection", "io.luy.model.Direction", "richtext", "string");
+    public enum FeatureType {
+        BOOLEAN,
+        DATE,
+        DATE_TIME,
+        DECIMAL,
+        INTEGER,
+        RICHTEXT,
+        STRING,
+        INTERFACE_DIRECTION,
+        ENUMERATION,
+        RELATION,
+        SELF_RELATION
+    }
+    public final static List<String> NonRelationshipFeatureNames = Arrays.asList("boolean", "date", "date_time", "decimal", "integer", "io.luy.model.Direction", "richtext", "string");
     public final static List<String> SelfRelationFeatureNames = Arrays.asList("children", "parent", "baseComponents", "parentComponents", "predecessors", "successors", "generalisation", "specialisations");
 
     public enum DIRECTIONS {
@@ -50,6 +63,7 @@ public class CMetamodel {
 
     public final static class Feature implements Comparable<Feature> {
         protected final CMetamodel _metamodel;
+        public final FeatureType featureType;
         public final String type;
         public final String persistentName;
         public final String name;
@@ -57,11 +71,7 @@ public class CMetamodel {
         public final String description;
         public final boolean mandatory;
         public final boolean multiple;
-        public final boolean isEnumerationAttribute;
-        public final boolean isRelationshipFeature;
-        public final boolean isSelfrelationFeature;
-        public final boolean isDirectionFeature;
-        public final boolean isSortable = false; // FIXME sortable are single-value native literals, probably also single-value enums
+        public final boolean isSortable;
 
         Feature(CMetamodel Metamodel, Map<String, Object> Data) {
             _metamodel = Metamodel;
@@ -72,10 +82,14 @@ public class CMetamodel {
             description = Data.getOrDefault("description", "<UNKNOWN>").toString();
             mandatory = Boolean.parseBoolean(Data.getOrDefault("mandatory", Boolean.FALSE).toString());
             multiple = Boolean.parseBoolean(Data.getOrDefault("multiple", Boolean.FALSE).toString());
-            isEnumerationAttribute = type.startsWith("io.luy.model.attribute.EnumAT.");
-            isRelationshipFeature = !(NonRelationshipFeatureNames.contains(type) || isEnumerationAttribute);
-            isSelfrelationFeature = SelfRelationFeatureNames.contains(persistentName);
-            isDirectionFeature = "io.luy.model.Direction".equals(type);
+
+            if (SelfRelationFeatureNames.contains(persistentName)) featureType = FeatureType.SELF_RELATION;
+            else if ("io.luy.model.Direction".equals(type)) featureType = FeatureType.INTERFACE_DIRECTION;
+            else if (type.startsWith("io.luy.model.attribute.EnumAT.")) featureType = FeatureType.ENUMERATION;
+            else if (!NonRelationshipFeatureNames.contains(type)) featureType = FeatureType.RELATION;
+            else featureType = FeatureType.valueOf(type.toUpperCase());
+
+            isSortable = !multiple && ((FeatureType.ENUMERATION == featureType) || NonRelationshipFeatureNames.contains(type));
         }
 
         @Override public int compareTo(Feature Other) {

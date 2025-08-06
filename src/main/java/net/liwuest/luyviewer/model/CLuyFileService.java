@@ -1,4 +1,7 @@
-package net.liwuest.luyviewer;
+package net.liwuest.luyviewer.model;
+
+import net.liwuest.luyviewer.util.CConfig;
+import net.liwuest.luyviewer.util.CConfigService;
 
 import java.io.IOException;
 import java.net.URI;

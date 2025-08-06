@@ -1,4 +1,4 @@
-package net.liwuest.luyviewer;
+package net.liwuest.luyviewer.util;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

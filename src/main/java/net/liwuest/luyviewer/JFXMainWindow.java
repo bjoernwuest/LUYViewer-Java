@@ -12,6 +12,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+import net.liwuest.luyviewer.model.CDatamodel;
+import net.liwuest.luyviewer.model.CFilteredAndSortedDatamodel;
+import net.liwuest.luyviewer.model.CLuyFileService;
 
 import java.io.IOException;
 import java.lang.ref.SoftReference;

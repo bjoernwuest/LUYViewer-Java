@@ -272,6 +272,17 @@
   "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"main","parameterTypes":["java.lang.String[]"] }]
 },
 {
+  "name":"net.liwuest.luyviewer.rule.Operators",
+  "allDeclaredFields":true
+},
+{
+  "name":"net.liwuest.luyviewer.util.CConfig",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"sun.misc.Unsafe",
   "fields":[{"name":"theUnsafe"}]
 },

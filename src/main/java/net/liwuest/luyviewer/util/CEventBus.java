@@ -1,4 +1,4 @@
-package net.liwuest.luyviewer;
+package net.liwuest.luyviewer.util;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 public final class CEventBus {
   public interface AbstractEvent {}
 
-  private final static Map<Class<? extends AbstractEvent>, Set<Consumer<? extends AbstractEvent>>> EventListeners = new TreeMap<>();
+  private final static Map<Class<? extends AbstractEvent>, Set<Consumer<? extends AbstractEvent>>> EventListeners = new HashMap<>();
 
   public static synchronized <T extends AbstractEvent> void subscribe(Consumer<T> Listener, Class<T> EventClass) {
     if ((null == Listener) || (null == EventClass)) return;
@@ -26,6 +26,7 @@ public final class CEventBus {
 
   public static synchronized <T extends AbstractEvent> void publish(T Event) {
     if (null == Event) return;
-    EventListeners.getOrDefault(Event.getClass(), new LinkedHashSet<>()).forEach(c -> ((Consumer<T>)c).accept(Event));
+    Set<?> listeners = EventListeners.get(Event.getClass());
+    if (null != listeners) listeners.forEach(c -> { try { ((Consumer<T>)c).accept(Event); } catch (Exception Ignore) { /* ignored */ } });
   }
 }
