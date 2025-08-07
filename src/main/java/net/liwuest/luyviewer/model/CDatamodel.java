@@ -106,7 +106,7 @@ public class CDatamodel {
               case INTEGER: return Integer.parseInt(value.toString());
               case RICHTEXT: return value;
               case STRING: return value;
-              case INTERFACE_DIRECTION: return CMetamodel.DIRECTIONS.valueOf(value.toString());
+              case INTERFACE_DIRECTION: return CMetamodel.INTERFACE_DIRECTIONS.valueOf(value.toString());
               case ENUMERATION: return value;
               case RELATION: return value;
               case SELF_RELATION: return value;

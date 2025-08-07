@@ -36,6 +36,7 @@ public final class CFilteredAndSortedDatamodel {
     m_Data = Data;
   }
 
+  public CDatamodel getRawModel() { return m_Data; }
   public synchronized LinkedHashSet<CMetamodel.TypeExpression> getTypes() { return m_Data.Metamodel.SubstantialTypeExpressions.stream().sorted((ste1, ste2) -> ste1.name.compareTo(ste2.name)).collect(Collectors.toCollection(LinkedHashSet::new)); }
 
   /**

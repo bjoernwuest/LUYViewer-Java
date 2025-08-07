@@ -51,7 +51,7 @@ public class JFXBuildingBlockList extends Pane {
             if (null != currentSelectedType) {
                 CFilter filter = Data.getFilter(currentSelectedType);
                 filter = (null == filter) ? new CFilter(currentSelectedType) : filter;
-                JFXRuleBuilderDialog dialog = new net.liwuest.luyviewer.rule.JFXRuleBuilderDialog(filter, f -> {
+                JFXRuleBuilderDialog dialog = new net.liwuest.luyviewer.rule.JFXRuleBuilderDialog(Data.getRawModel(), currentSelectedType, filter, f -> {
                     Data.setFilter(f, currentSelectedType);
                     updateFilterButtonIcon(filterButton);
                     updateTable();
@@ -233,10 +233,10 @@ public class JFXBuildingBlockList extends Pane {
                 return new Label(value.toString());
             }
             case "io.luy.model.Direction": {
-                Object value = Element.AdditionalData.getOrDefault(Feature.persistentName, CMetamodel.DIRECTIONS.NO_DIRECTION);
-                if (value instanceof List valueList) value = valueList.isEmpty() ? CMetamodel.DIRECTIONS.NO_DIRECTION : valueList.get(0);
-                if (!(value instanceof CMetamodel.DIRECTIONS)) value = CMetamodel.DIRECTIONS.valueOf(value.toString());
-                if (value instanceof CMetamodel.DIRECTIONS dirValue) {
+                Object value = Element.AdditionalData.getOrDefault(Feature.persistentName, CMetamodel.INTERFACE_DIRECTIONS.NO_DIRECTION);
+                if (value instanceof List valueList) value = valueList.isEmpty() ? CMetamodel.INTERFACE_DIRECTIONS.NO_DIRECTION : valueList.get(0);
+                if (!(value instanceof CMetamodel.INTERFACE_DIRECTIONS)) value = CMetamodel.INTERFACE_DIRECTIONS.valueOf(value.toString());
+                if (value instanceof CMetamodel.INTERFACE_DIRECTIONS dirValue) {
                     Label label = switch (dirValue) {
                         case FIRST_TO_SECOND -> new Label("\u2192"); // →
                         case SECOND_TO_FIRST -> new Label("\u2190"); // ←

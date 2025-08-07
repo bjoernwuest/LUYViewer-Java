@@ -4,26 +4,25 @@ import net.liwuest.luyviewer.model.CDatamodel;
 import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.util.CEventBus;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public final class CRule extends AEvaluatable<CRule> {
   private CMetamodel.Feature m_Feature;
   private Operators.IOperator m_Operator;
-  private Set<Object> m_Values;
+  private Object m_Value;
 
   public CRule() { this(null, null, null); }
-  public CRule(Set<Object> Values) { this(null, null, Values); }
+  public CRule(Object Value) { this(null, null, Value); }
   public CRule(Operators.IOperator Operator) { this(null, Operator, null); }
   public CRule(CMetamodel.Feature Feature) { this(Feature, null, null); }
-  public CRule(Operators.IOperator Operator, Set<Object> Values) { this(null, Operator, Values); }
-  public CRule(CMetamodel.Feature Feature, Set<Object> Values) { this(Feature, null, Values); }
+  public CRule(Operators.IOperator Operator, Object Value) { this(null, Operator, Value); }
+  public CRule(CMetamodel.Feature Feature, Object Value) { this(Feature, null, Value); }
   public CRule(CMetamodel.Feature Feature, Operators.IOperator Operator) { this(Feature, Operator, null); }
-  public CRule(CMetamodel.Feature Feature, Operators.IOperator Operator, Set<Object> Values) {
+  public CRule(CMetamodel.Feature Feature, Operators.IOperator Operator, Object Value) {
     if ((null != Feature) && (null != Operator)) assert Operator.compatibleWith(Feature.featureType);
     m_Feature = Feature;
     m_Operator = Operator;
-    m_Values = Values;
+    m_Value = Value;
   }
 
   public CMetamodel.Feature getFeature() { return m_Feature; }
@@ -44,19 +43,18 @@ public final class CRule extends AEvaluatable<CRule> {
     }
     return this;
   }
-  public Set<Object> getValues() { return new HashSet<>(m_Values); }
-  public CRule addValue(Object Value) { assert null != Value; m_Values.add(Value); return this; }
-  public CRule setValues(Set<Object> Values) { assert null != Values; m_Values = Values; return this; }
+  public Object getValue() { return m_Value; }
+  public CRule setValue(Object Values) { assert null != Values; m_Value = Values; return this; }
 
-  @Override public boolean evaluate(CDatamodel.Element Element) { if ((null == Element) || (null == m_Operator)) return true; return m_Operator.evaluate(Element.AdditionalData.get(m_Feature.persistentName), m_Values); }
-  @Override public boolean isValid() { return (null != m_Feature) && (null != m_Operator) && (null != m_Values); }
+  @Override public boolean evaluate(CDatamodel.Element Element) { if ((null == Element) || (null == m_Operator)) return true; return m_Operator.evaluate(Element.AdditionalData.get(m_Feature.persistentName), m_Feature, m_Value); }
+  @Override public boolean isValid() { return (null != m_Feature) && (null != m_Operator) && (null != m_Value); }
   @Override public CRule copy() {
     if (null == m_Feature) {
-      if (null == m_Operator) return new CRule((Set<Object>)m_Values);
-      else return new CRule(m_Operator, m_Values);
+      if (null == m_Operator) return new CRule((Set<Object>) m_Value);
+      else return new CRule(m_Operator, m_Value);
     } else {
-      if (null == m_Operator) return new CRule(m_Feature, (Set<Object>)m_Values);
-      else return new CRule(m_Feature, m_Operator, m_Values);
+      if (null == m_Operator) return new CRule(m_Feature, (Set<Object>) m_Value);
+      else return new CRule(m_Feature, m_Operator, m_Value);
     }
   }
 }

@@ -2,17 +2,18 @@ package net.liwuest.luyviewer.rule;
 
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import net.liwuest.luyviewer.model.CDatamodel;
 import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.util.CEventBus;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Ein visueller Rule-Builder-Dialog für Filter (ähnlich reactscript.com/user-friendly-query-builder-react/).
@@ -23,8 +24,12 @@ public class JFXRuleBuilderDialog extends Stage {
     private CFilter workingCopy;
     private final Consumer<CFilter> onSave;
     private CFilter resultFilter = null;
+    private final CDatamodel data;
+    private final CMetamodel.TypeExpression forType;
 
-    public JFXRuleBuilderDialog(CFilter filter, Consumer<CFilter> onSave) {
+    public JFXRuleBuilderDialog(CDatamodel Data, CMetamodel.TypeExpression ForType, CFilter filter, Consumer<CFilter> onSave) {
+        this.data = Data;
+        this.forType = ForType;
         this.originalFilter = filter;
         this.workingCopy = filter.copy();
         this.onSave = onSave;
@@ -132,37 +137,47 @@ public class JFXRuleBuilderDialog extends Stage {
         });
         // Operator-Auswahl
         ComboBox<Operators.IOperator> opBox = new ComboBox<>();
+        // Value-Eingabe-Node als Platzhalter
+        Pane valueInputWrapper = new Pane();
+        Node valueInput = createValueInput(rule, featureBox.getValue());
+        valueInputWrapper.getChildren().setAll(valueInput);
         featureBox.valueProperty().addListener((obs, old, val) -> {
             rule.setFeature(val);
             // Operatoren-Liste aktualisieren
             if (val != null) {
-                opBox.setItems(FXCollections.observableArrayList(Operators.getSupportedOperators(val.featureType)));
+                var supported = FXCollections.observableArrayList(Operators.getSupportedOperators(val.featureType));
+                opBox.setItems(supported);
+                // Prüfe, ob aktueller Operator noch gültig ist
+                Operators.IOperator currentOp = opBox.getValue();
+                if (currentOp != null && supported.contains(currentOp)) {}
+                else if (!supported.isEmpty()) opBox.setValue(supported.get(0));
+                else opBox.setValue(null);
             } else {
                 opBox.setItems(FXCollections.observableArrayList());
+                opBox.setValue(null);
             }
-            opBox.setValue(null);
+            valueInputWrapper.getChildren().setAll(createValueInput(rule, val));
         });
         if (rule.getFeature() != null)
             opBox.setItems(FXCollections.observableArrayList(Operators.getSupportedOperators(rule.getFeature().featureType)));
         opBox.setValue(rule.getOperator());
-        opBox.valueProperty().addListener((obs, old, val) -> rule.setOperator(val));
-        // Werte-Eingabe (einfach als Textfeld, für Demo)
-        TextField valueField = new TextField(rule.getValues().stream().map(String::valueOf).collect(Collectors.joining(", ")));
-        valueField.textProperty().addListener((obs, old, val) -> {
-            Set<Object> vals = Arrays.stream(val.split(",")).map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toSet());
-            rule.setValues(vals);
+        opBox.valueProperty().addListener((obs, old, val) -> {
+            rule.setOperator(val);
+            valueInputWrapper.getChildren().setAll(createValueInput(rule, featureBox.getValue()));
         });
-        // Entfernen-Button
         Button btnRemove = new Button("Entfernen");
         btnRemove.setOnAction(e -> {
             parentGroup.removeRule(rule);
             refresh();
         });
-        row.getChildren().addAll(new Label("Regel:"), featureBox, opBox, valueField, btnRemove);
+        row.getChildren().addAll(new Label("Regel:"), featureBox, opBox, valueInputWrapper, btnRemove);
         return row;
     }
 
-    private void refresh() {
-        setScene(new Scene(createContent(), getScene().getWidth(), getScene().getHeight()));
+    private void refresh() { setScene(new Scene(createContent(), getScene().getWidth(), getScene().getHeight())); }
+
+    private Node createValueInput(CRule rule, CMetamodel.Feature feature) {
+        if ((null != rule) && (null != rule.getOperator())) return rule.getOperator().getInput(rule, feature, forType, data);
+        else return new Label("");
     }
 }

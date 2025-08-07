@@ -33,7 +33,7 @@ public class CMetamodel {
     public final static List<String> NonRelationshipFeatureNames = Arrays.asList("boolean", "date", "date_time", "decimal", "integer", "io.luy.model.Direction", "richtext", "string");
     public final static List<String> SelfRelationFeatureNames = Arrays.asList("children", "parent", "baseComponents", "parentComponents", "predecessors", "successors", "generalisation", "specialisations");
 
-    public enum DIRECTIONS {
+    public enum INTERFACE_DIRECTIONS {
         NO_DIRECTION,
         FIRST_TO_SECOND,
         SECOND_TO_FIRST,
@@ -41,7 +41,7 @@ public class CMetamodel {
     }
 
     abstract static class BasicExpression implements Comparable<BasicExpression> {
-        protected final CMetamodel _metamodel;
+        public final CMetamodel metamodel;
         public final String type;
         public final String persistentName;
         public final String name;
@@ -49,7 +49,7 @@ public class CMetamodel {
         public final String description;
 
         BasicExpression(CMetamodel Metamodel, Map<String, Object> Data) {
-            _metamodel = Metamodel;
+            metamodel = Metamodel;
             type = Data.getOrDefault("type", "<UNKNOWN>").toString();
             persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
             name = Data.getOrDefault("name", "<UNKNOWN>").toString();
@@ -62,7 +62,7 @@ public class CMetamodel {
     }
 
     public final static class Feature implements Comparable<Feature> {
-        protected final CMetamodel _metamodel;
+        public final CMetamodel metamodel;
         public final FeatureType featureType;
         public final String type;
         public final String persistentName;
@@ -74,7 +74,7 @@ public class CMetamodel {
         public final boolean isSortable;
 
         Feature(CMetamodel Metamodel, Map<String, Object> Data) {
-            _metamodel = Metamodel;
+            metamodel = Metamodel;
             type = Data.getOrDefault("type", "<UNKNOWN>").toString();
             persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
             name = Data.getOrDefault("name", "<UNKNOWN>").toString();
@@ -100,8 +100,8 @@ public class CMetamodel {
             return this.name.compareTo(Other.name);
         }
 
-        public boolean referencesBuildingblock() { return _metamodel.SubstantialTypeExpressions.stream().anyMatch(r -> r.persistentName.equals(type)); }
-        public RelationshipTypeExpression getRTE() { return _metamodel.RelationshipTypeExpressions.stream().filter(rte -> rte.persistentName.equals(type)).findFirst().orElse(null); }
+        public boolean referencesBuildingblock() { return metamodel.SubstantialTypeExpressions.stream().anyMatch(r -> r.persistentName.equals(type)); }
+        public RelationshipTypeExpression getRTE() { return metamodel.RelationshipTypeExpressions.stream().filter(rte -> rte.persistentName.equals(type)).findFirst().orElse(null); }
     }
 
     public abstract static class TypeExpression extends BasicExpression {
