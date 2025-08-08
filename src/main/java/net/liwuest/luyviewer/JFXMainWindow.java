@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import net.liwuest.luyviewer.model.CDatamodel;
 import net.liwuest.luyviewer.model.CFilteredAndSortedDatamodel;
 import net.liwuest.luyviewer.model.CLuyFileService;
+import net.liwuest.luyviewer.util.CTranslations;
 
 import java.io.IOException;
 import java.lang.ref.SoftReference;
@@ -39,26 +40,19 @@ public class JFXMainWindow {
                 Instant instant = Instant.ofEpochMilli(timestampLong);
                 LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
                 return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            } catch (NumberFormatException | java.time.DateTimeException e) {
-                return "Invalid timestamp: " + timestamp;
-            }
+            } catch (NumberFormatException | java.time.DateTimeException e) { return "Invalid timestamp: " + timestamp; }
         }
     }
 
     private final ComboBox<FileListEntry> fileComboBox = new ComboBox<>();
 //    private final ViewerPanel viewerPanel = new ViewerPanel();
 //    private final SwingNode swingNode = new SwingNode();
-    private final Label statusBar = new Label("Ready");
+    private final Label statusBar = new Label(CTranslations.INSTANCE.Label_Ready);
     private final Map<String, SoftReference<CDatamodel>> loadedModels = new TreeMap<>();
     private final Stage stage;
 
     public JFXMainWindow(Stage stage) throws IOException {
         this.stage = stage;
-
-        // Wrap the Swing ViewerPanel in a SwingNode
-/*        SwingUtilities.invokeLater(() -> {
-            swingNode.setContent(viewerPanel);
-        });*/
 
         // Configure combo box for LUY file selection
         fileComboBox.setOnAction(e -> {
@@ -69,12 +63,10 @@ public class JFXMainWindow {
         });
 
         // Load existing files
-        CLuyFileService.listFiles().stream()
-            .map(FileListEntry::new)
-            .forEach(fileComboBox.getItems()::add);
+        CLuyFileService.listFiles().stream().map(FileListEntry::new).forEach(fileComboBox.getItems()::add);
 
         // Configure download button to get new LUY data file
-        Button downloadButton = new Button("Download from LUY");
+        Button downloadButton = new Button(CTranslations.INSTANCE.Button_Download);
         downloadButton.setOnAction(e -> {
             JFXDownloadDialog dialog = new JFXDownloadDialog(stage);
             dialog.setOnFileDownloaded(timestamp -> {
@@ -94,7 +86,7 @@ public class JFXMainWindow {
     }
 
     private void loadDataModel(FileListEntry selectedItem) {
-        statusBar.setText("Loading data...");
+        statusBar.setText(CTranslations.INSTANCE.Label_Downloading);
 
         Task<CDatamodel> loadTask = new Task<CDatamodel>() {
             @Override
@@ -120,13 +112,13 @@ public class JFXMainWindow {
                 Scene scene = stage.getScene();
                 if (scene != null && scene.getRoot() instanceof BorderPane root) root.setCenter(buildingBlockList);
             }
-            statusBar.setText("Ready");
+            statusBar.setText(CTranslations.INSTANCE.Label_Ready);
         });
 
         loadTask.setOnFailed(event -> {
             Throwable exception = loadTask.getException();
             exception.printStackTrace();
-            statusBar.setText("Error loading data: " + exception.getMessage());
+            statusBar.setText(String.format(CTranslations.INSTANCE.Label_DownloadError, exception.getMessage()));
         });
 
         Thread loadThread = new Thread(loadTask);
@@ -139,7 +131,7 @@ public class JFXMainWindow {
         HBox topPanel = new HBox(10);
         topPanel.setPadding(new Insets(10));
 
-        Label fileLabel = new Label("Select data file:");
+        Label fileLabel = new Label(CTranslations.INSTANCE.Label_SelectDatafile);
         fileComboBox.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(fileComboBox, Priority.ALWAYS);
 

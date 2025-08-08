@@ -44,16 +44,16 @@ public final class CRule extends AEvaluatable<CRule> {
     return this;
   }
   public Object getValue() { return m_Value; }
-  public CRule setValue(Object Values) { assert null != Values; m_Value = Values; return this; }
+  public CRule setValue(Object Values) { m_Value = Values; CEventBus.publish(new EventEvaluatableChanged()); return this; }
 
   @Override public boolean evaluate(CDatamodel.Element Element) { if ((null == Element) || (null == m_Operator)) return true; return m_Operator.evaluate(Element.AdditionalData.get(m_Feature.persistentName), m_Feature, m_Value); }
-  @Override public boolean isValid() { return (null != m_Feature) && (null != m_Operator) && (null != m_Value); }
+  @Override public boolean isValid() { return (null != m_Feature) && (null != m_Operator) && (!m_Operator.requiresInput() || null != m_Value); }
   @Override public CRule copy() {
     if (null == m_Feature) {
-      if (null == m_Operator) return new CRule((Set<Object>) m_Value);
+      if (null == m_Operator) return new CRule(m_Value);
       else return new CRule(m_Operator, m_Value);
     } else {
-      if (null == m_Operator) return new CRule(m_Feature, (Set<Object>) m_Value);
+      if (null == m_Operator) return new CRule(m_Feature, m_Value);
       else return new CRule(m_Feature, m_Operator, m_Value);
     }
   }

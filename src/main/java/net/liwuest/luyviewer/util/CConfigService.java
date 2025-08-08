@@ -21,11 +21,7 @@ public final class CConfigService {
     public static synchronized CConfig getConfig() throws IOException {
         if (null == config) {
             Path configPath = Paths.get("config.jsonc");
-            if (!Files.exists(configPath)) {
-                // Try alternative locations
-                configPath = Paths.get("config.jsonc");
-                if (!Files.exists(configPath)) throw new IOException("Configuration file not found: config.jsonc");
-            }
+            if (!Files.exists(configPath)) throw new IOException("Configuration file not found: config.jsonc");
 
             String content = Files.readString(configPath);
             ObjectMapper objectMapper = new ObjectMapper();

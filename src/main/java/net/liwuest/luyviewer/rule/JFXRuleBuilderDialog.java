@@ -37,7 +37,11 @@ public class JFXRuleBuilderDialog extends Stage {
         initModality(Modality.APPLICATION_MODAL);
         setMinWidth(600);
         setMinHeight(400);
-        setScene(new Scene(createContent(), 700, 500));
+        // Dynamische Breite: Bildschirmbreite berücksichtigen
+        double screenWidth = javafx.stage.Screen.getPrimary().getVisualBounds().getWidth();
+        double preferredWidth = Math.min(1200, screenWidth * 0.98); // Maximal 98% der Bildschirmbreite, aber nicht mehr als 1200
+        setWidth(preferredWidth);
+        setScene(new Scene(createContent(), preferredWidth, 500));
     }
 
     public CFilter getResultFilter() {
@@ -52,6 +56,7 @@ public class JFXRuleBuilderDialog extends Stage {
         renderGroup(filterBox, workingCopy.getRootGroup());
         scrollPane.setContent(filterBox);
         scrollPane.setFitToWidth(true);
+        scrollPane.setPrefViewportWidth(getWidth() - 40); // ScrollPane möglichst breit
         HBox buttonBar = new HBox(10);
         buttonBar.setPadding(new Insets(10, 0, 0, 0));
         buttonBar.setSpacing(10);
@@ -83,27 +88,50 @@ public class JFXRuleBuilderDialog extends Stage {
         opBox.setValue(group.getOperator());
         opBox.valueProperty().addListener((obs, old, val) -> {
             group.setOperator(val);
-            refresh(); // Buttons für Neue Gruppe/Regel werden so wieder aktiviert/deaktiviert
+            refresh();
         });
         HBox opRow = new HBox(8, new Label("Gruppe:"), opBox);
         groupBox.getChildren().add(opRow);
-        // Regeln
-        for (AEvaluatable evaluatable : group.getRules()) {
-            if (evaluatable instanceof CRule rule) groupBox.getChildren().add(renderRule(rule, group));
-            else if (evaluatable instanceof CGroup sub) renderGroup(groupBox, sub);
-            else System.err.println("Unknown type of evaluatable: " + ((null == evaluatable) ? "<null>" : (evaluatable.getClass().getName() + " (" + evaluatable.toString() + "")));
+        // Regeln als Grid
+        GridPane grid = new GridPane();
+        grid.setHgap(8);
+        grid.setVgap(4);
+        grid.setPrefWidth(getWidth() - 60); // Grid möglichst breit
+        // Spalten wachsen lassen
+        for (int i = 0; i < 5; i++) {
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setHgrow(Priority.ALWAYS);
+            if (i == 0) cc.setMinWidth(60); // Label
+            if (i == 1) cc.setMinWidth(140); // Feature
+            if (i == 2) cc.setMinWidth(110); // Operator
+            if (i == 3) cc.setMinWidth(160); // Value
+            if (i == 4) cc.setMinWidth(32); // Remove
+            grid.getColumnConstraints().add(cc);
         }
+        int rowIdx = 0;
+        for (AEvaluatable evaluatable : group.getRules()) {
+            if (evaluatable instanceof CRule rule) {
+                Node[] controls = renderRuleGrid(rule, group);
+                for (int col = 0; col < controls.length; col++) {
+                    grid.add(controls[col], col, rowIdx);
+                }
+                rowIdx++;
+            } else if (evaluatable instanceof CGroup sub) {
+                VBox subBox = new VBox();
+                renderGroup(subBox, sub);
+                grid.add(subBox, 0, rowIdx++, 5, 1); // Subgruppe über alle Spalten
+            } else System.err.println("Unknown type of evaluatable: " + ((null == evaluatable) ? "<null>" : (evaluatable.getClass().getName() + " (" + evaluatable.toString() + "")));
+        }
+        groupBox.getChildren().add(grid);
         // Buttons zum Hinzufügen
         HBox addBar = new HBox(8);
         Button btnAddRule = new Button("Regel hinzufügen");
         Button btnAddGroup = new Button("Gruppe hinzufügen");
-        // NOT-Gruppen dürfen nur ein Kind haben
         boolean isNot = group.getOperator() == CGroup.GroupOperator.NOT;
-        boolean canAdd = group.getRules().size() < 1 || !isNot;
         btnAddRule.setDisable(isNot && group.getRules().size() >= 1);
         btnAddGroup.setDisable(isNot && group.getRules().size() >= 1);
         btnAddRule.setOnAction(e -> {
-            group.addRule(new CRule(null, null, new HashSet<>()));
+            group.addRule(new CRule());
             refresh();
         });
         btnAddGroup.setOnAction(e -> {
@@ -115,9 +143,10 @@ public class JFXRuleBuilderDialog extends Stage {
         parent.getChildren().add(groupBox);
     }
 
-    private HBox renderRule(CRule rule, CGroup parentGroup) {
-        HBox row = new HBox(8);
-        row.setPadding(new Insets(2, 0, 2, 0));
+    private Node[] renderRuleGrid(CRule rule, CGroup parentGroup) {
+        // Regel-Label
+        Label lblRegel = new Label("Regel:");
+        lblRegel.setMinWidth(60);
         // Feature-Auswahl
         ComboBox<CMetamodel.Feature> featureBox = new ComboBox<>(FXCollections.observableArrayList(workingCopy.getTypeExpression().features));
         featureBox.setValue(rule.getFeature());
@@ -135,19 +164,19 @@ public class JFXRuleBuilderDialog extends Stage {
                 setText((empty || item == null) ? "" : item.name);
             }
         });
+        featureBox.setMinWidth(140);
         // Operator-Auswahl
         ComboBox<Operators.IOperator> opBox = new ComboBox<>();
-        // Value-Eingabe-Node als Platzhalter
+        opBox.setMinWidth(110);
         Pane valueInputWrapper = new Pane();
+        valueInputWrapper.setMinWidth(160);
         Node valueInput = createValueInput(rule, featureBox.getValue());
         valueInputWrapper.getChildren().setAll(valueInput);
         featureBox.valueProperty().addListener((obs, old, val) -> {
             rule.setFeature(val);
-            // Operatoren-Liste aktualisieren
             if (val != null) {
                 var supported = FXCollections.observableArrayList(Operators.getSupportedOperators(val.featureType));
                 opBox.setItems(supported);
-                // Prüfe, ob aktueller Operator noch gültig ist
                 Operators.IOperator currentOp = opBox.getValue();
                 if (currentOp != null && supported.contains(currentOp)) {}
                 else if (!supported.isEmpty()) opBox.setValue(supported.get(0));
@@ -165,13 +194,19 @@ public class JFXRuleBuilderDialog extends Stage {
             rule.setOperator(val);
             valueInputWrapper.getChildren().setAll(createValueInput(rule, featureBox.getValue()));
         });
-        Button btnRemove = new Button("Entfernen");
+        // Entfernen-Button
+        Button btnRemove = new Button();
+        btnRemove.setTooltip(new Tooltip("Entfernen"));
+        btnRemove.setGraphic(new Label("\uD83D\uDDD1"));
+        btnRemove.setMinWidth(32);
+        btnRemove.setMinHeight(32);
+        btnRemove.setMaxHeight(32);
+        btnRemove.setStyle("-fx-padding: 2 4 2 4;");
         btnRemove.setOnAction(e -> {
             parentGroup.removeRule(rule);
             refresh();
         });
-        row.getChildren().addAll(new Label("Regel:"), featureBox, opBox, valueInputWrapper, btnRemove);
-        return row;
+        return new Node[]{lblRegel, featureBox, opBox, valueInputWrapper, btnRemove};
     }
 
     private void refresh() { setScene(new Scene(createContent(), getScene().getWidth(), getScene().getHeight())); }

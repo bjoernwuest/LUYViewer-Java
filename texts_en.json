@@ -1,0 +1,8 @@
+{
+  "Label_Ready": "Ready",
+  "Button_Download": "Download from LUY",
+  "Label_Downloading": "Loading data...",
+  "Label_DownloadError": "Fehler beim herunterladen von LUY: %s",
+  "Label_SelectDatafile": "Select data file:"
+
+}

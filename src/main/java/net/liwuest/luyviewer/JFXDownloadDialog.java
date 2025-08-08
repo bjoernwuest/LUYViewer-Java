@@ -11,6 +11,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import net.liwuest.luyviewer.model.CLuyFileService;
+import net.liwuest.luyviewer.util.CTranslations;
 
 import java.util.function.Consumer;
 
@@ -30,7 +31,7 @@ public class JFXDownloadDialog {
         dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initOwner(parent);
-        dialog.setTitle("Download from LUY");
+        dialog.setTitle(CTranslations.INSTANCE.Button_Download);
         dialog.setResizable(false);
 
         initializeComponents();
@@ -124,7 +125,7 @@ public class JFXDownloadDialog {
             return;
         }
 
-        statusLabel.setText("Downloading from LUY...");
+        statusLabel.setText(CTranslations.INSTANCE.Label_Downloading);
         downloadButton.setDisable(true);
         cancelButton.setDisable(true);
         usernameField.setDisable(true);
@@ -148,12 +149,12 @@ public class JFXDownloadDialog {
         downloadTask.setOnFailed(e -> {
             Platform.runLater(() -> {
                 Throwable exception = downloadTask.getException();
-                statusLabel.setText("Download failed: " + exception.getMessage());
+                statusLabel.setText(String.format(CTranslations.INSTANCE.Label_DownloadError, exception.getMessage()));
 
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Download Error");
                 alert.setHeaderText(null);
-                alert.setContentText("Download failed:\n" + exception.getMessage());
+                alert.setContentText(String.format(CTranslations.INSTANCE.Label_DownloadError, "\n"+exception.getMessage()));
                 alert.showAndWait();
 
                 // Reset UI state
