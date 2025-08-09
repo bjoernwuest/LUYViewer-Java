@@ -2,6 +2,7 @@
 package net.liwuest.luyviewer.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.liwuest.luyviewer.util.CTranslations;
 
 import java.awt.Color;
 import java.io.File;
@@ -50,11 +51,11 @@ public class CMetamodel {
 
         BasicExpression(CMetamodel Metamodel, Map<String, Object> Data) {
             metamodel = Metamodel;
-            type = Data.getOrDefault("type", "<UNKNOWN>").toString();
-            persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
-            name = Data.getOrDefault("name", "<UNKNOWN>").toString();
-            pluralName = Data.getOrDefault("pluralName", "<UNKNOWN>").toString();
-            description = Data.getOrDefault("description", "<UNKNOWN>").toString();
+            type = Data.getOrDefault("type", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            persistentName = Data.getOrDefault("persistentName", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            name = Data.getOrDefault("name", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            pluralName = Data.getOrDefault("pluralName", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            description = Data.getOrDefault("description", CTranslations.INSTANCE.Unknown_Placeholder).toString();
         }
 
         @Override public int compareTo(BasicExpression Other) { return this.name.compareTo(Other.name); }
@@ -75,11 +76,11 @@ public class CMetamodel {
 
         Feature(CMetamodel Metamodel, Map<String, Object> Data) {
             metamodel = Metamodel;
-            type = Data.getOrDefault("type", "<UNKNOWN>").toString();
-            persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
-            name = Data.getOrDefault("name", "<UNKNOWN>").toString();
-            pluralName = Data.getOrDefault("pluralName", "<UNKNOWN>").toString();
-            description = Data.getOrDefault("description", "<UNKNOWN>").toString();
+            type = Data.getOrDefault("type", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            persistentName = Data.getOrDefault("persistentName", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            name = Data.getOrDefault("name", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            pluralName = Data.getOrDefault("pluralName", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            description = Data.getOrDefault("description", CTranslations.INSTANCE.Unknown_Placeholder).toString();
             mandatory = Boolean.parseBoolean(Data.getOrDefault("mandatory", Boolean.FALSE).toString());
             multiple = Boolean.parseBoolean(Data.getOrDefault("multiple", Boolean.FALSE).toString());
 
@@ -110,7 +111,7 @@ public class CMetamodel {
 
         TypeExpression(CMetamodel Metamodel, Map<String, Object> Data) {
             super(Metamodel, Data);
-            abbreviation = Data.getOrDefault("abbreviation", "<UNKNOWN>").toString();
+            abbreviation = Data.getOrDefault("abbreviation", CTranslations.INSTANCE.Unknown_Placeholder).toString();
             if (Data.getOrDefault("features", new ArrayList<Map<String, Object>>()) instanceof List featureData) {
                 features = (Set<Feature>)featureData.stream().filter(fd -> fd instanceof Map).map(fd -> new Feature(Metamodel, (Map)fd)).filter(Objects::nonNull).collect(Collectors.toCollection(TreeSet::new));
             } else features = new TreeSet<>();
@@ -134,10 +135,10 @@ public class CMetamodel {
         public final int index;
 
         Literal(Map<String, Object> Data) {
-            persistentName = Data.getOrDefault("persistentName", "<UNKNOWN>").toString();
-            name = Data.getOrDefault("name", "<UNKNOWN>").toString();
-            pluralName = Data.getOrDefault("pluralName", "<UNKNOWN>").toString();
-            description = Data.getOrDefault("description", "<UNKNOWN>").toString();
+            persistentName = Data.getOrDefault("persistentName", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            name = Data.getOrDefault("name", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            pluralName = Data.getOrDefault("pluralName", CTranslations.INSTANCE.Unknown_Placeholder).toString();
+            description = Data.getOrDefault("description", CTranslations.INSTANCE.Unknown_Placeholder).toString();
             color = deserialize(Data.getOrDefault("color", "rgb(0,0,0)").toString());
             index = Integer.parseInt(Data.getOrDefault("index", -1).toString());
         }

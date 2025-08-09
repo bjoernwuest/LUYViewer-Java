@@ -1,6 +1,7 @@
 package net.liwuest.luyviewer.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.liwuest.luyviewer.util.CTranslations;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,11 +71,11 @@ public class CDatamodel {
     Element(Map<String, Object> Data, CMetamodel.TypeExpression Type, CMetamodel Metamodel) {
       List<Object> idData = (List)Data.getOrDefault("id", new ArrayList<>());
       id = idData.isEmpty() ? -1 : Integer.parseInt(idData.get(0).toString()); Data.put("id", id);
-      elementURI = Data.getOrDefault("elementURI", "<UNKNOWN>").toString(); Data.put("elementURI", elementURI);
+      elementURI = Data.getOrDefault("elementURI", CTranslations.INSTANCE.Unknown_Placeholder).toString(); Data.put("elementURI", elementURI);
       List<Object> lmtData = (List)Data.getOrDefault("lastModificationTime", new ArrayList<>());
       lastModificationTime = parseToInstant(lmtData.isEmpty() ? "1970-01-01 00:00:00" : lmtData.get(0).toString()); Data.put("lastModificationTime", lastModificationTime);
       List<Object> lmuData = (List)Data.getOrDefault("lastModificationUser", new ArrayList<>());
-      lastModificationUser = lmuData.isEmpty() ? "<UNKNOWN>>" : lmuData.get(0).toString(); Data.put("lastModificationUser", lastModificationUser);
+      lastModificationUser = lmuData.isEmpty() ? CTranslations.INSTANCE.Unknown_Placeholder : lmuData.get(0).toString(); Data.put("lastModificationUser", lastModificationUser);
 
       // Process enumeration attributes
       Iterator<Map.Entry<String, Object>> iter = Data.entrySet().iterator();
@@ -164,7 +165,7 @@ public class CDatamodel {
       List<Object> hierarchy_levelData = (List)Data.getOrDefault("$$hierarchy_level$$", new ArrayList<>());
       hierarchy_level = hierarchy_levelData.isEmpty() ? -1 : Integer.parseInt(hierarchy_levelData.get(0).toString()); Data.put("$$hierarchy_level$$", hierarchy_level);
       List<Object> nameData = (List)Data.getOrDefault("name", new ArrayList<>());
-      name = nameData.isEmpty() ? "<UNKNOWN>" : nameData.get(0).toString(); Data.put("name", name);
+      name = nameData.isEmpty() ? CTranslations.INSTANCE.Unknown_Placeholder : nameData.get(0).toString(); Data.put("name", name);
       List<Object> descriptionData = (List)Data.getOrDefault("description", new ArrayList<>());
       description = descriptionData.isEmpty() ? "" : descriptionData.get(0).toString(); Data.put("description", description);
       List<Object> positionData = (List)Data.getOrDefault("position", new ArrayList<>());
@@ -207,7 +208,7 @@ public class CDatamodel {
 
     // Create elements
     for (Map<String, Object> item : items) {
-      String typeExpressionName = item.getOrDefault("query", "<UNKNOWN>").toString();
+      String typeExpressionName = item.getOrDefault("query", CTranslations.INSTANCE.Unknown_Placeholder).toString();
       CMetamodel.TypeExpression typeExpression = datamodel.Metamodel.SubstantialTypeExpressions.stream().filter(ste -> ste.persistentName.equals(typeExpressionName)).map(ste -> (CMetamodel.TypeExpression)ste).findFirst().orElseGet(() -> datamodel.Metamodel.RelationshipTypeExpressions.stream().filter(rte -> rte.persistentName.equals(typeExpressionName)).findFirst().get());
       if (item.getOrDefault("result", new ArrayList<>()) instanceof List elements) {
         for (Object element : elements) {

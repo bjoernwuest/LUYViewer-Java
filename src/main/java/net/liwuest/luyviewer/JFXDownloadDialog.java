@@ -1,4 +1,3 @@
-
 package net.liwuest.luyviewer;
 
 import javafx.application.Platform;
@@ -21,9 +20,9 @@ import java.util.function.Consumer;
 public class JFXDownloadDialog {
     private final TextField usernameField = new TextField();
     private final PasswordField passwordField = new PasswordField();
-    private final Button downloadButton = new Button("Download");
-    private final Button cancelButton = new Button("Cancel");
-    private final Label statusLabel = new Label("Enter your credentials to download from LUY");
+    private final Button downloadButton = new Button(CTranslations.INSTANCE.Button_Download); // Übersetzung
+    private final Button cancelButton = new Button(CTranslations.INSTANCE.Button_Cancel); // Übersetzung
+    private final Label statusLabel = new Label(CTranslations.INSTANCE.Label_EnterCredentials); // Übersetzung
     private Consumer<String> onFileDownloaded;
     private final Stage dialog;
 
@@ -46,12 +45,12 @@ public class JFXDownloadDialog {
         mainPanel.setPadding(new Insets(20, 20, 10, 20));
 
         // Username field
-        mainPanel.add(new Label("Username:"), 0, 0);
+        mainPanel.add(new Label(CTranslations.INSTANCE.Label_Username), 0, 0); // Übersetzung
         usernameField.setPrefWidth(200);
         mainPanel.add(usernameField, 1, 0);
 
         // Password field
-        mainPanel.add(new Label("Password:"), 0, 1);
+        mainPanel.add(new Label(CTranslations.INSTANCE.Label_Password), 0, 1); // Übersetzung
         passwordField.setPrefWidth(200);
         mainPanel.add(passwordField, 1, 1);
 
@@ -118,9 +117,9 @@ public class JFXDownloadDialog {
 
         if (username.isEmpty() || password.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Input Required");
+            alert.setTitle(CTranslations.INSTANCE.Title_InputRequired); // Übersetzung
             alert.setHeaderText(null);
-            alert.setContentText("Please enter both username and password");
+            alert.setContentText(CTranslations.INSTANCE.Label_EnterUsernamePassword); // Übersetzung
             alert.showAndWait();
             return;
         }
@@ -140,7 +139,7 @@ public class JFXDownloadDialog {
 
         downloadTask.setOnSucceeded(e -> {
             Platform.runLater(() -> {
-                statusLabel.setText("Download completed successfully");
+                statusLabel.setText(CTranslations.INSTANCE.Label_DownloadSuccess); // Übersetzung
                 if (onFileDownloaded != null) onFileDownloaded.accept(downloadTask.getValue());
                 dialog.close();
             });
@@ -152,7 +151,7 @@ public class JFXDownloadDialog {
                 statusLabel.setText(String.format(CTranslations.INSTANCE.Label_DownloadError, exception.getMessage()));
 
                 Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Download Error");
+                alert.setTitle(CTranslations.INSTANCE.Title_DownloadError); // Übersetzung
                 alert.setHeaderText(null);
                 alert.setContentText(String.format(CTranslations.INSTANCE.Label_DownloadError, "\n"+exception.getMessage()));
                 alert.showAndWait();

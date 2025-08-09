@@ -11,6 +11,7 @@ import javafx.stage.Stage;
 import net.liwuest.luyviewer.model.CDatamodel;
 import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.util.CEventBus;
+import net.liwuest.luyviewer.util.CTranslations;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -33,7 +34,7 @@ public class JFXRuleBuilderDialog extends Stage {
         this.originalFilter = filter;
         this.workingCopy = filter.copy();
         this.onSave = onSave;
-        setTitle("Filter bearbeiten");
+        setTitle(CTranslations.INSTANCE.Title_FilterEdit); // Übersetzung
         initModality(Modality.APPLICATION_MODAL);
         setMinWidth(600);
         setMinHeight(400);
@@ -61,8 +62,8 @@ public class JFXRuleBuilderDialog extends Stage {
         buttonBar.setPadding(new Insets(10, 0, 0, 0));
         buttonBar.setSpacing(10);
         buttonBar.setStyle("-fx-alignment: center-right;");
-        Button btnSave = new Button("Speichern");
-        Button btnCancel = new Button("Abbrechen");
+        Button btnSave = new Button(CTranslations.INSTANCE.Button_Save); // Übersetzung
+        Button btnCancel = new Button(CTranslations.INSTANCE.Button_Cancel); // Übersetzung
         btnSave.setDisable(!workingCopy.isValid());
         // Aktualisiere Button-Status bei jeder Änderung
         CEventBus.subscribe(event -> btnSave.setDisable(!workingCopy.isValid()), EventEvaluatableChanged.class);
@@ -90,7 +91,7 @@ public class JFXRuleBuilderDialog extends Stage {
             group.setOperator(val);
             refresh();
         });
-        HBox opRow = new HBox(8, new Label("Gruppe:"), opBox);
+        HBox opRow = new HBox(8, new Label(CTranslations.INSTANCE.Label_Group), opBox); // Übersetzung
         groupBox.getChildren().add(opRow);
         // Regeln als Grid
         GridPane grid = new GridPane();
@@ -125,8 +126,8 @@ public class JFXRuleBuilderDialog extends Stage {
         groupBox.getChildren().add(grid);
         // Buttons zum Hinzufügen
         HBox addBar = new HBox(8);
-        Button btnAddRule = new Button("Regel hinzufügen");
-        Button btnAddGroup = new Button("Gruppe hinzufügen");
+        Button btnAddRule = new Button(CTranslations.INSTANCE.Button_AddRule); // Übersetzung
+        Button btnAddGroup = new Button(CTranslations.INSTANCE.Button_AddGroup); // Übersetzung
         boolean isNot = group.getOperator() == CGroup.GroupOperator.NOT;
         btnAddRule.setDisable(isNot && group.getRules().size() >= 1);
         btnAddGroup.setDisable(isNot && group.getRules().size() >= 1);
@@ -145,7 +146,7 @@ public class JFXRuleBuilderDialog extends Stage {
 
     private Node[] renderRuleGrid(CRule rule, CGroup parentGroup) {
         // Regel-Label
-        Label lblRegel = new Label("Regel:");
+        Label lblRegel = new Label(CTranslations.INSTANCE.Label_Rule); // Übersetzung
         lblRegel.setMinWidth(60);
         // Feature-Auswahl
         ComboBox<CMetamodel.Feature> featureBox = new ComboBox<>(FXCollections.observableArrayList(workingCopy.getTypeExpression().features));
@@ -196,7 +197,7 @@ public class JFXRuleBuilderDialog extends Stage {
         });
         // Entfernen-Button
         Button btnRemove = new Button();
-        btnRemove.setTooltip(new Tooltip("Entfernen"));
+        btnRemove.setTooltip(new Tooltip(CTranslations.INSTANCE.Button_Remove)); // Übersetzung
         btnRemove.setGraphic(new Label("\uD83D\uDDD1"));
         btnRemove.setMinWidth(32);
         btnRemove.setMinHeight(32);

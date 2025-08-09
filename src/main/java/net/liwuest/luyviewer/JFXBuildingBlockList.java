@@ -17,6 +17,7 @@ import net.liwuest.luyviewer.model.CFilteredAndSortedDatamodel;
 import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.rule.CFilter;
 import net.liwuest.luyviewer.rule.JFXRuleBuilderDialog;
+import net.liwuest.luyviewer.util.CTranslations;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -45,7 +46,7 @@ public class JFXBuildingBlockList extends Pane {
         typeAndFilterBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         typeAndFilterBox.getChildren().add(typeComboBox);
         // Filter-Button
-        Button filterButton = new Button("Filter");
+        Button filterButton = new Button(CTranslations.INSTANCE.Button_Filter); // Übersetzung
         updateFilterButtonIcon(filterButton);
         filterButton.setOnAction(e -> {
             if (null != currentSelectedType) {
@@ -356,8 +357,7 @@ public class JFXBuildingBlockList extends Pane {
         boolean valid = Data.getFilter(currentSelectedType) != null && Data.getFilter(currentSelectedType).isValid();
         String filterIcon = "\uD83D\uDD0D"; // Unicode Lupe als Platzhalter für Filter
         String checkIcon = valid ? " \u2714" : ""; // Grüner Haken
-        filterButton.setText("Filter" + checkIcon);
-        // Optional: Tooltip
-        filterButton.setTooltip(new javafx.scene.control.Tooltip(valid ? "Filter ist gültig" : "Filter ist nicht gesetzt oder ungültig"));
+        filterButton.setText(CTranslations.INSTANCE.Button_Filter + checkIcon); // Übersetzung
+        filterButton.setTooltip(new javafx.scene.control.Tooltip(valid ? CTranslations.INSTANCE.Tooltip_FilterValid : CTranslations.INSTANCE.Tooltip_FilterInvalid)); // Übersetzung
     }
 }

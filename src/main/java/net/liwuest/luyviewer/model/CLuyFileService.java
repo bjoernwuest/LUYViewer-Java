@@ -60,7 +60,7 @@ public class CLuyFileService {
                 java.nio.file.Files.writeString(Paths.get("data", fileName + "_metamodel.json"), metamodelResponse.body());
                 java.nio.file.Files.writeString(Paths.get("data", fileName + "_data.json"), dataResponse.body());
                 return fileName;
-            } else throw new IOException("Failed to download data file: HTTP " + dataResponse.statusCode());
-        } else throw new IOException("Failed to download metamodel file: HTTP " + metamodelResponse.statusCode());
+            } else throw new IOException("Failed to download data file: HTTP " + dataResponse.statusCode()); // FIXME: translation
+        } else throw new IOException("Failed to download metamodel file: HTTP " + metamodelResponse.statusCode()); // FIXME: translation
     }
 }

@@ -3,6 +3,30 @@
   "Button_Download": "Download from LUY",
   "Label_Downloading": "Loading data...",
   "Label_DownloadError": "Fehler beim herunterladen von LUY: %s",
-  "Label_SelectDatafile": "Select data file:"
-
+  "Label_SelectDatafile": "Select data file:",
+  "Unknown_Placeholder": "<UNKNOWN>",
+  "Button_Cancel": "Cancel",
+  "Label_EnterCredentials": "Enter your credentials to download from LUY",
+  "Label_Username": "Username:",
+  "Label_Password": "Password:",
+  "Title_InputRequired": "Input Required",
+  "Label_EnterUsernamePassword": "Please enter both username and password",
+  "Label_DownloadSuccess": "Download completed successfully",
+  "Title_DownloadError": "Download Error",
+  "Button_Filter": "Filter",
+  "Tooltip_FilterValid": "Filter is valid",
+  "Tooltip_FilterInvalid": "Filter is not set or invalid",
+  "Title_FilterEdit": "Edit Filter",
+  "Button_Save": "Save",
+  "Label_Group": "Group:",
+  "Button_AddRule": "Add Rule",
+  "Button_AddGroup": "Add Group",
+  "Label_Rule": "Rule:",
+  "Button_Remove": "Remove",
+  "Operation_Equals": "equals",
+  "Operation_Any": "any",
+  "Operation_Contains": "contains",
+  "Operation_StartsWith": "starts with",
+  "Operation_EndsWith": "ends with"
 }
+
