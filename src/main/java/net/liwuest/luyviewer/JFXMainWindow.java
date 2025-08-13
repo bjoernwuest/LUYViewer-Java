@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import net.liwuest.luyviewer.model.CDatamodel;
 import net.liwuest.luyviewer.model.CFilteredAndSortedDatamodel;
 import net.liwuest.luyviewer.model.CLuyFileService;
+import net.liwuest.luyviewer.util.CEventBus;
 import net.liwuest.luyviewer.util.CTranslations;
 
 import java.io.IOException;
@@ -45,9 +46,7 @@ public class JFXMainWindow {
     }
 
     private final ComboBox<FileListEntry> fileComboBox = new ComboBox<>();
-//    private final ViewerPanel viewerPanel = new ViewerPanel();
-//    private final SwingNode swingNode = new SwingNode();
-    private final Label statusBar = new Label(CTranslations.INSTANCE.Label_Ready);
+    private final Label statusBar = new Label(CTranslations.INSTANCE.Status_Ready);
     private final Map<String, SoftReference<CDatamodel>> loadedModels = new TreeMap<>();
     private final Stage stage;
 
@@ -57,9 +56,7 @@ public class JFXMainWindow {
         // Configure combo box for LUY file selection
         fileComboBox.setOnAction(e -> {
             FileListEntry selectedItem = fileComboBox.getSelectionModel().getSelectedItem();
-            if (selectedItem != null) {
-                loadDataModel(selectedItem);
-            }
+            if (selectedItem != null) loadDataModel(selectedItem);
         });
 
         // Load existing files
@@ -83,10 +80,13 @@ public class JFXMainWindow {
         });
 
         setupUI(downloadButton);
+
+        CEventBus.subscribe(event -> statusBar.setText(CTranslations.INSTANCE.Status_BuildDataView), CFilteredAndSortedDatamodel.BuildCachedDataview.class);
+        CEventBus.subscribe(event -> statusBar.setText(CTranslations.INSTANCE.Status_Ready), CFilteredAndSortedDatamodel.FinishedBuildingCachedDataview.class);
     }
 
     private void loadDataModel(FileListEntry selectedItem) {
-        statusBar.setText(CTranslations.INSTANCE.Label_Downloading);
+        statusBar.setText(CTranslations.INSTANCE.Status_LoadingDataFromLUYFile);
 
         Task<CDatamodel> loadTask = new Task<CDatamodel>() {
             @Override
@@ -96,9 +96,8 @@ public class JFXMainWindow {
                     CDatamodel dataModel = CDatamodel.load("data/" + selectedItem.timestamp);
                     loadedModels.put(selectedItem.timestamp, new SoftReference<>(dataModel));
                     return dataModel;
-                } else {
-                    return model.get();
-                }
+                } else return model.get();
+
             }
         };
 
@@ -112,13 +111,13 @@ public class JFXMainWindow {
                 Scene scene = stage.getScene();
                 if (scene != null && scene.getRoot() instanceof BorderPane root) root.setCenter(buildingBlockList);
             }
-            statusBar.setText(CTranslations.INSTANCE.Label_Ready);
+            statusBar.setText(CTranslations.INSTANCE.Status_Ready);
         });
 
         loadTask.setOnFailed(event -> {
             Throwable exception = loadTask.getException();
             exception.printStackTrace();
-            statusBar.setText(String.format(CTranslations.INSTANCE.Label_DownloadError, exception.getMessage()));
+            statusBar.setText(String.format(CTranslations.INSTANCE.Status_DownloadError, exception.getMessage()));
         });
 
         Thread loadThread = new Thread(loadTask);
@@ -148,7 +147,6 @@ public class JFXMainWindow {
         // Main layout
         BorderPane root = new BorderPane();
         root.setTop(topPanel);
-//        root.setCenter(swingNode); // Use SwingNode instead of ViewerPanel directly
         root.setBottom(statusBar);
 
         // Configure stage

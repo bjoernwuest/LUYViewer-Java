@@ -6,6 +6,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import net.liwuest.luyviewer.model.CDatamodel;
 import net.liwuest.luyviewer.model.CMetamodel;
+import net.liwuest.luyviewer.util.CTranslations;
 
 import java.lang.reflect.Field;
 import java.time.*;
@@ -57,8 +58,7 @@ public final class Operators {
     });
     return cb;
   }
-
-  @SuppressWarnings("unused") public final static IOperator<Boolean> EQUALS_BOOLEAN = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<Boolean> BOOLEAN_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Boolean Against) {
       Boolean typedValue = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Boolean bv)) typedValue = bv;
@@ -71,10 +71,9 @@ public final class Operators {
 
     @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.BOOLEAN  == FeatureType; }
     @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getBooleanInput(Rule); }
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
-
-  @SuppressWarnings("unused") public final static IOperator<Boolean> ANY_BOOLEAN = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<Boolean> BOOLEAN_ANY = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Boolean Against) {
       Boolean typedValue = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Boolean bv)) typedValue = bv;
@@ -85,8 +84,9 @@ public final class Operators {
     @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return (CMetamodel.FeatureType.BOOLEAN == FeatureType); }
     @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return new Label(""); }
     @Override public boolean requiresInput() { return false; }
-    @Override public String toString() { return "any"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Any; }
   };
+
 
   @SuppressWarnings("unused") public final static IOperator<Date> EQUALS_DATE = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Date Against) {
@@ -109,8 +109,9 @@ public final class Operators {
       return dp;
     }
 
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
+
 
   @SuppressWarnings("unused") public final static IOperator<Instant> EQUALS_DATE_TIME = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Instant Against) {
@@ -149,8 +150,9 @@ public final class Operators {
       else try { rule.setValue(LocalDateTime.of(date, LocalTime.parse(time)).atZone(ZoneId.systemDefault()).toInstant()); } catch (Exception ex) { rule.setValue(null); }
     }
 
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
+
 
   @SuppressWarnings("unused") public final static IOperator<Double> EQUALS_DECIMAL = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Double Against) {
@@ -187,8 +189,9 @@ public final class Operators {
       return tf;
     }
 
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
+
 
   @SuppressWarnings("unused") public final static IOperator<Integer> EQUALS_INTEGER = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Integer Against) {
@@ -225,8 +228,9 @@ public final class Operators {
       return tf;
     }
 
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
+
 
   @SuppressWarnings("unused") public final static IOperator<CMetamodel.INTERFACE_DIRECTIONS> EQUALS_INTERFACE_DIRECTION = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, CMetamodel.INTERFACE_DIRECTIONS Against) {
@@ -252,7 +256,7 @@ public final class Operators {
       return combo;
     }
 
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
 
   private static Node getStringInput(CRule Rule) {
@@ -264,8 +268,20 @@ public final class Operators {
     return tf;
 
   }
+  @SuppressWarnings("unused") public final static IOperator<String> STRING_ANY = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, String Against) {
+      String typedValued = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof String bv)) typedValued = bv;
+      if ((null == typedValued) && (Value instanceof String bv)) typedValued = bv;
+      return (null != typedValued) ? true : false;
+    }
 
-  @SuppressWarnings("unused") public final static IOperator<String> EQUALS_STRING = new IOperator<>() {
+    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
+    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return new Label(""); }
+    @Override public boolean requiresInput() { return false; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Any; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<String> STRING_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, String Against) {
       String typedValued = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof String bv)) typedValued = bv;
@@ -279,10 +295,9 @@ public final class Operators {
     @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
 
     @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
-
-  @SuppressWarnings("unused") public final static IOperator<String> CONTAINS_STRING = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<String> STRING_CONTAINS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, String Against) {
       String typedValued = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof String bv)) typedValued = bv;
@@ -295,22 +310,39 @@ public final class Operators {
 
     @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
     @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
-    @Override public String toString() { return "contains"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Contains; }
   };
-
-  @SuppressWarnings("unused") public final static IOperator<String> ANY_STRING = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<String> STRING_STARTS_WITH = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, String Against) {
       String typedValued = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof String bv)) typedValued = bv;
       if ((null == typedValued) && (Value instanceof String bv)) typedValued = bv;
-      return (null != typedValued) ? true : false;
+
+      if (null == Against) return true;
+      else if (null == typedValued) return false;
+      else return typedValued.startsWith(Against);
     }
 
     @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return new Label(""); }
-    @Override public boolean requiresInput() { return false; }
-    @Override public String toString() { return "any"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_StartsWith; }
+    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
   };
+  @SuppressWarnings("unused") public final static IOperator<String> STRING_ENDS_WITH = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, String Against) {
+      String typedValued = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof String bv)) typedValued = bv;
+      if ((null == typedValued) && (Value instanceof String bv)) typedValued = bv;
+
+      if (null == Against) return true;
+      else if (null == typedValued) return false;
+      else return typedValued.endsWith(Against);
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_EndsWith; }
+    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
+  };
+
 
   @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.Literal>> EQUALS_ENUM = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Set<CMetamodel.Literal> Against) {
@@ -319,7 +351,7 @@ public final class Operators {
       if (Value instanceof CMetamodel.Literal singleValue) valuesToValidate.add(singleValue);
 
       if (null == Against || Against.isEmpty()) return valuesToValidate.isEmpty();
-      else return Against.containsAll(valuesToValidate);
+      else return Against.containsAll(valuesToValidate) && valuesToValidate.containsAll(Against);
     }
 
     @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.ENUMERATION == FeatureType; }
@@ -357,8 +389,9 @@ public final class Operators {
       return box;
     }
 
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
+
 
   @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.SubstantialTypeExpression>> EQUALS_SELF_RELATION = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Set<CMetamodel.SubstantialTypeExpression> Against) {
@@ -402,8 +435,9 @@ public final class Operators {
       return box;
     }
 
-    @Override public String toString() { return "equals"; }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
+
 
   @SuppressWarnings("rawtypes") public static Set<IOperator> getSupportedOperators(CMetamodel.FeatureType FeatureType) {
     Set<IOperator> result = new HashSet<>();

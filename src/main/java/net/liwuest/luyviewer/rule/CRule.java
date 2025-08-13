@@ -4,8 +4,6 @@ import net.liwuest.luyviewer.model.CDatamodel;
 import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.util.CEventBus;
 
-import java.util.Set;
-
 public final class CRule extends AEvaluatable<CRule> {
   private CMetamodel.Feature m_Feature;
   private Operators.IOperator m_Operator;

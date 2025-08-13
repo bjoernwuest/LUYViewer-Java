@@ -49,9 +49,9 @@ public class CLuyFileService {
         // Download and save metamodel file
         HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
         CConfig config = CConfigService.getConfig();
-        if (null == config.luyHost || config.luyHost.isEmpty()) {
-            throw new IOException("LUY host not configured");
-        }
+        if (null == config.luyHost || config.luyHost.isEmpty()) throw new IOException("LUY host not configured");
+
+        System.out.println("Proxy used: " + System.getProperty("http.proxyHost") + ":" + System.getProperty("http.proxyPort"));
 
         HttpResponse<String> metamodelResponse = httpClient.send(HttpRequest.newBuilder().uri(URI.create(config.luyHost + "/api/metamodel")).timeout(Duration.ofMinutes(2)).header("Accept", "application/json").header("User-Agent", "LUYViewer-Java/1.0.0").header("Authorization", "Basic " + auth).GET().build(), HttpResponse.BodyHandlers.ofString());
         if (200 == metamodelResponse.statusCode()) {

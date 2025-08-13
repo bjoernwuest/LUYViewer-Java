@@ -13,6 +13,8 @@ public final class CFilteredAndSortedDatamodel {
     UNSORTED;
   }
 
+  public final class BuildCachedDataview implements CEventBus.AbstractEvent {}
+  public final class FinishedBuildingCachedDataview implements CEventBus.AbstractEvent {}
   public final class DatasortingChanged implements CEventBus.AbstractEvent {}
   public final class FeatureHidden implements CEventBus.AbstractEvent {
     public final CMetamodel.Feature Feature;
