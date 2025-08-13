@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.liwuest.luyviewer.LUYViewer;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Level;
 
 public final class CTranslations {
   @JsonProperty(value = "Label_Ready", defaultValue = "Ready") public String Label_Ready;
@@ -36,6 +38,7 @@ public final class CTranslations {
   @JsonProperty(value = "Label_Rule", defaultValue = "Rule:") public String Label_Rule;
   @JsonProperty(value = "Button_Remove", defaultValue = "Remove") public String Button_Remove;
 
+  @JsonProperty(value = "Status_Initial", defaultValue = "Select data file or download one from LUY") public String Status_Initial;
   @JsonProperty(value = "Status_LoadLUYDataFile", defaultValue = "Loading data from LUY file...") public String Status_LoadingDataFromLUYFile;
   @JsonProperty(value = "Status_Ready", defaultValue = "Ready") public String Status_Ready;
   @JsonProperty(value = "Status_DownloadError", defaultValue = "Error downloading data: %s") public String Status_DownloadError;
@@ -46,13 +49,16 @@ public final class CTranslations {
   @JsonProperty(value = "Operation_Contains", defaultValue = "contains") public String Operation_Contains;
   @JsonProperty(value = "Operation_StartsWith", defaultValue = "starts with") public String Operation_StartsWith;
   @JsonProperty(value = "Operation_EndsWith", defaultValue = "ends with") public String Operation_EndsWith;
+  @JsonProperty(value = "Operation_Button_Complex", defaultValue = "complex filter") public String Operation_Button_Complex;
+  @JsonProperty(value = "Operation_ComplexAny", defaultValue = "match any") public String Operation_ComplexAny;
+  @JsonProperty(value = "Operation_ComplexAll", defaultValue = "match all") public String Operation_ComplexAll;
 
   private CTranslations() {}
   public final static CTranslations INSTANCE;
   static {
     CTranslations t = null;
+    String configFileName = "texts_";
     try {
-      String configFileName = "texts_";
       try { configFileName += CConfigService.getConfig().language; } catch (IOException Ignored) { configFileName += "en"; }
       configFileName += ".json";
       Path configFile = Paths.get(configFileName);
@@ -67,7 +73,7 @@ public final class CTranslations {
       factory.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
       t = objectMapper.readValue(content, CTranslations.class);
     } catch (IOException Ex) {
-      Ex.printStackTrace();
+      LUYViewer.LOGGER.log(Level.SEVERE, "Could not load language file '" + configFileName + "'", Ex);
       System.exit(-1);
     }
     INSTANCE = t;

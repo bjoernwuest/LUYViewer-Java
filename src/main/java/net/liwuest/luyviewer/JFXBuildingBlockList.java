@@ -18,6 +18,8 @@ import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.rule.CFilter;
 import net.liwuest.luyviewer.rule.JFXRuleBuilderDialog;
 import net.liwuest.luyviewer.util.CTranslations;
+import net.liwuest.luyviewer.LUYViewer;
+import java.util.logging.Level;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -51,7 +53,7 @@ public class JFXBuildingBlockList extends Pane {
         filterButton.setOnAction(e -> {
             if (null != currentSelectedType) {
                 CFilter filter = Data.getFilter(currentSelectedType);
-                filter = (null == filter) ? new CFilter(currentSelectedType) : filter;
+                filter = (null == filter) ? new CFilter(currentSelectedType.name, currentSelectedType) : filter;
                 JFXRuleBuilderDialog dialog = new net.liwuest.luyviewer.rule.JFXRuleBuilderDialog(Data.getRawModel(), currentSelectedType, filter, f -> {
                     Data.setFilter(f, currentSelectedType);
                     updateFilterButtonIcon(filterButton);
@@ -113,6 +115,7 @@ public class JFXBuildingBlockList extends Pane {
         typeComboBox.setOnAction(e -> {
             currentSelectedType = typeComboBox.getSelectionModel().getSelectedItem();
             updateTable();
+            updateFilterButtonIcon(filterButton); // Button-Label nach Typwechsel aktualisieren
         });
         updateTable();
     }
@@ -292,7 +295,7 @@ public class JFXBuildingBlockList extends Pane {
                         return vbox;
                     }
                 }
-                System.out.println("Cell " + Row + "/" + Column + " - Feature type: " + Feature.type + " (ref. BB: " + Feature.referencesBuildingblock() + ") - Element: " + Element.elementURI);
+                LUYViewer.LOGGER.info("Unhandled feature: Cell " + Row + "/" + Column + " - Feature type: " + Feature.type + " (ref. BB: " + Feature.referencesBuildingblock() + ") - Element: " + Element.elementURI);
                 return new Label("todo");
             }
         }

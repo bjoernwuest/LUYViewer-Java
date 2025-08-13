@@ -27,6 +27,12 @@
   "Operation_Any": "any",
   "Operation_Contains": "contains",
   "Operation_StartsWith": "starts with",
-  "Operation_EndsWith": "ends with"
+  "Operation_EndsWith": "ends with",
+  "Status_Initial": "Select data file or download one from LUY",
+  "Status_LoadLUYDataFile": "Loading data from LUY file...",
+  "Status_BuildDataView": "Prepare your view on data",
+  "Status_Ready": "Ready",
+  "Operation_Button_Complex": "Complex rule",
+  "Operation_ComplexAny": "match any",
+  "Operation_ComplexAll": "match all"
 }
-

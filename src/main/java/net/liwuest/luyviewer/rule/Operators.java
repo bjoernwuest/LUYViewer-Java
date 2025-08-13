@@ -1,6 +1,5 @@
 package net.liwuest.luyviewer.rule;
 
-import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
@@ -28,21 +27,22 @@ public final class Operators {
     /**
      * Checks if this operator is compatible to the given feature type.
      *
-     * @param FeatureType The feature type to check.
+     * @param Feature The feature type to check.
      * @return {@code true} if this operator can be used with the feature type, {@code false} otherwise.
      */
-    boolean compatibleWith(CMetamodel.FeatureType FeatureType);
+    boolean compatibleWith(CMetamodel.Feature Feature);
 
     /**
      * Get the input element that provides the values to use as {@code Against} in {@link #evaluate(Object, CMetamodel.Feature, Object)}.
      *
+     * @param Filter
      * @param Rule    The rule where the {@code Against} values are to be stored at.
      * @param Feature The feature the input is shown. Useful for e.g. enumerations.
      * @param ForType The actual TypeExpression this rule would be applied to.
      * @param Data    The current data model. Useful for e.g. self-relations.
      * @return The input element.
      */
-    Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data);
+    Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data);
 
     default boolean requiresInput() { return true; }
   }
@@ -69,8 +69,8 @@ public final class Operators {
       else return Against.equals(valueToValidate);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.BOOLEAN  == FeatureType; }
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getBooleanInput(Rule); }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.BOOLEAN  == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getBooleanInput(Rule); }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
   @SuppressWarnings("unused") public final static IOperator<Boolean> BOOLEAN_ANY = new IOperator<>() {
@@ -81,14 +81,14 @@ public final class Operators {
       return (null != typedValue) ? true : false;
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return (CMetamodel.FeatureType.BOOLEAN == FeatureType); }
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return new Label(""); }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return (CMetamodel.FeatureType.BOOLEAN == Feature.featureType); }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return new Label(""); }
     @Override public boolean requiresInput() { return false; }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_Any; }
   };
 
 
-  @SuppressWarnings("unused") public final static IOperator<Date> EQUALS_DATE = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<Date> DATE_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Date Against) {
       Date typedValued = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Date bv)) typedValued = bv;
@@ -99,9 +99,9 @@ public final class Operators {
       else return Against.equals(valueToValidate);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.DATE == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DATE == Feature.featureType; }
 
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
       DatePicker dp = new DatePicker();
       Object val = Rule.getValue();
       if (val instanceof java.time.LocalDate ld) dp.setValue(ld);
@@ -113,7 +113,7 @@ public final class Operators {
   };
 
 
-  @SuppressWarnings("unused") public final static IOperator<Instant> EQUALS_DATE_TIME = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<Instant> DATE_TIME_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Instant Against) {
       Instant typedValued = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Instant bv)) typedValued = bv;
@@ -124,9 +124,9 @@ public final class Operators {
       else return Against.equals(valueToValidate);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.DATE_TIME == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DATE_TIME == Feature.featureType; }
 
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
       // DatePicker + Uhrzeitfeld
       VBox box = new VBox(2);
       javafx.scene.control.DatePicker dp = new javafx.scene.control.DatePicker();
@@ -154,7 +154,7 @@ public final class Operators {
   };
 
 
-  @SuppressWarnings("unused") public final static IOperator<Double> EQUALS_DECIMAL = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<Double> DECIMAL_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Double Against) {
       Double typedValue = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Double bv)) typedValue = bv;
@@ -165,9 +165,9 @@ public final class Operators {
       else return Against.equals(valueToValidate);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.DECIMAL == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DECIMAL == Feature.featureType; }
 
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
       TextField tf = new TextField(null == Rule.getValue() ? "" : Rule.getValue().toString());
       // Validator: Nur Dezimalzahlen zulassen
       tf.textProperty().addListener((obs, old, v) -> {
@@ -193,7 +193,7 @@ public final class Operators {
   };
 
 
-  @SuppressWarnings("unused") public final static IOperator<Integer> EQUALS_INTEGER = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<Integer> INTEGER_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Integer Against) {
       Integer typedValued = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Integer bv)) typedValued = bv;
@@ -204,9 +204,9 @@ public final class Operators {
       else return Against.equals(valueToValidate);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.INTEGER == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.INTEGER == Feature.featureType; }
 
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
       TextField tf = new TextField(null == Rule.getValue() ? "" : Rule.getValue().toString());
       // Validator: Nur Integer zulassen
       tf.textProperty().addListener((obs, old, v) -> {
@@ -232,32 +232,40 @@ public final class Operators {
   };
 
 
-  @SuppressWarnings("unused") public final static IOperator<CMetamodel.INTERFACE_DIRECTIONS> EQUALS_INTERFACE_DIRECTION = new IOperator<>() {
-    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, CMetamodel.INTERFACE_DIRECTIONS Against) {
+  private static Node getInterfaceDirectionInput(CRule Rule) {
+    VBox box = new VBox(4);
+    Set<CMetamodel.INTERFACE_DIRECTIONS> selected = (null != Rule.getValue()) ? (Set)Rule.getValue() : new HashSet<>();
+    for (CMetamodel.INTERFACE_DIRECTIONS dir : CMetamodel.INTERFACE_DIRECTIONS.values()) {
+      CheckBox cb = new CheckBox(dir.name());
+      box.getChildren().add(cb);
+      Object vals = Rule.getValue();
+      if (vals instanceof Set<?> set && set.contains(dir)) cb.setSelected(true);
+      else if (vals instanceof CMetamodel.INTERFACE_DIRECTIONS single && single == dir) cb.setSelected(true);
+      cb.selectedProperty().addListener((obs, old, isSelected) -> {
+        if (isSelected) selected.add(dir);
+        else selected.remove(dir);
+        if (selected.isEmpty()) Rule.setValue(null);
+        else Rule.setValue(selected);
+      });
+    }
+    return box;
+  }
+  @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.INTERFACE_DIRECTIONS>> INTERFACE_DIRECTION_CONTAINS = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Set<CMetamodel.INTERFACE_DIRECTIONS> Against) {
       CMetamodel.INTERFACE_DIRECTIONS typedValued = null;
       if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof CMetamodel.INTERFACE_DIRECTIONS bv)) typedValued = bv;
       if ((null == typedValued) && (Value instanceof CMetamodel.INTERFACE_DIRECTIONS bv)) typedValued = bv;
 
       final CMetamodel.INTERFACE_DIRECTIONS valueToValidate = typedValued;
       if (null == Against) return null == valueToValidate;
-      else return Against.equals(valueToValidate);
+      else return Against.contains(valueToValidate);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.INTERFACE_DIRECTION == FeatureType; }
-
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
-      // Einzel-Auswahl DIRECTIONS per ComboBox
-      ComboBox<CMetamodel.INTERFACE_DIRECTIONS> combo = new ComboBox<>(FXCollections.observableArrayList(CMetamodel.INTERFACE_DIRECTIONS.values()));
-      combo.setPromptText("Bitte wählen");
-      // Vorbelegung
-      Object vals = Rule.getValue();
-      if (vals instanceof CMetamodel.INTERFACE_DIRECTIONS dir) combo.setValue(dir);
-      combo.valueProperty().addListener((obs, old, val) -> Rule.setValue(null));
-      return combo;
-    }
-
-    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.INTERFACE_DIRECTION == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getInterfaceDirectionInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Contains; }
   };
+
 
   private static Node getStringInput(CRule Rule) {
     TextField tf = new TextField(null == Rule.getValue() ? "" : Rule.getValue().toString());
@@ -276,8 +284,8 @@ public final class Operators {
       return (null != typedValued) ? true : false;
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return new Label(""); }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.STRING == Feature.featureType || CMetamodel.FeatureType.RICHTEXT == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return new Label(""); }
     @Override public boolean requiresInput() { return false; }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_Any; }
   };
@@ -292,9 +300,9 @@ public final class Operators {
       else return Against.equals(valueToValidate);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.STRING == Feature.featureType || CMetamodel.FeatureType.RICHTEXT == Feature.featureType; }
 
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
   };
   @SuppressWarnings("unused") public final static IOperator<String> STRING_CONTAINS = new IOperator<>() {
@@ -308,8 +316,8 @@ public final class Operators {
       else return typedValued.contains(Against);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.STRING == Feature.featureType || CMetamodel.FeatureType.RICHTEXT == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_Contains; }
   };
   @SuppressWarnings("unused") public final static IOperator<String> STRING_STARTS_WITH = new IOperator<>() {
@@ -323,9 +331,9 @@ public final class Operators {
       else return typedValued.startsWith(Against);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.STRING == Feature.featureType || CMetamodel.FeatureType.RICHTEXT == Feature.featureType; }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_StartsWith; }
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
   };
   @SuppressWarnings("unused") public final static IOperator<String> STRING_ENDS_WITH = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, String Against) {
@@ -338,13 +346,45 @@ public final class Operators {
       else return typedValued.endsWith(Against);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.STRING == FeatureType || CMetamodel.FeatureType.RICHTEXT == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.STRING == Feature.featureType || CMetamodel.FeatureType.RICHTEXT == Feature.featureType; }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_EndsWith; }
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getStringInput(Rule); }
   };
 
 
-  @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.Literal>> EQUALS_ENUM = new IOperator<>() {
+  private static Node getEnumInput(CRule Rule, CMetamodel.Feature Feature) {
+    // SORT LITERALS!
+    CMetamodel.EnumerationExpression enumExpression = Feature.metamodel.EnumerationExpressions.stream().filter(ee -> ee.name.equals(Feature.name)).findFirst().orElse(null);
+    if (enumExpression == null || enumExpression.literals == null || enumExpression.literals.isEmpty()) return new Label("Keine Literale vorhanden");
+
+    VBox box = new VBox(4);
+    List<CheckBox> checkBoxes = new ArrayList<>();
+    Set<CMetamodel.Literal> selected = new HashSet<>();
+    // Vorbelegung
+    Object val = Rule.getValue();
+    if (val instanceof Set<?> set) set.forEach(o -> { if (o instanceof CMetamodel.Literal lit) selected.add(lit); });
+    else if (val instanceof CMetamodel.Literal lit) selected.add(lit);
+
+    VBox inner = new VBox(4);
+    for (CMetamodel.Literal literal : enumExpression.literals.stream().sorted((l1, l2) -> l1.name.compareTo(l2.name)).collect(Collectors.toCollection(ArrayList::new))) {
+      CheckBox cb = new CheckBox(literal.name);
+      inner.getChildren().add(cb);
+      if (selected.contains(literal)) cb.setSelected(true);
+      cb.selectedProperty().addListener((obs, old, isSelected) -> {
+        if (isSelected) selected.add(literal);
+        else selected.remove(literal);
+        if (selected.isEmpty()) Rule.setValue(null);
+        else Rule.setValue(new HashSet<>(selected));
+      });
+      checkBoxes.add(cb);
+    }
+    ScrollPane scroll = new ScrollPane(inner);
+    scroll.setFitToWidth(true);
+    scroll.setPrefViewportHeight(80);
+    box.getChildren().add(scroll);
+    return box;
+  }
+  @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.Literal>> ENUM_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Set<CMetamodel.Literal> Against) {
       Set<CMetamodel.Literal> valuesToValidate = new HashSet<>();
       if (Value instanceof Collection<?> listValue) listValue.stream().filter(v -> v instanceof CMetamodel.Literal).forEach(v -> valuesToValidate.add((CMetamodel.Literal) v));
@@ -354,46 +394,27 @@ public final class Operators {
       else return Against.containsAll(valuesToValidate) && valuesToValidate.containsAll(Against);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.ENUMERATION == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.ENUMERATION == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getEnumInput(Rule, Feature); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.Literal>> ENUM_CONTAINS = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Set<CMetamodel.Literal> Against) {
+      Set<CMetamodel.Literal> valuesToValidate = new HashSet<>();
+      if (Value instanceof Collection<?> listValue) listValue.stream().filter(v -> v instanceof CMetamodel.Literal).forEach(v -> valuesToValidate.add((CMetamodel.Literal) v));
+      if (Value instanceof CMetamodel.Literal singleValue) valuesToValidate.add(singleValue);
 
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
-      // SORT LITERALS!
-      CMetamodel.EnumerationExpression enumExpression = Feature.metamodel.EnumerationExpressions.stream().filter(ee -> ee.name.equals(Feature.name)).findFirst().orElse(null);
-      if (enumExpression == null || enumExpression.literals == null || enumExpression.literals.isEmpty()) return new Label("Keine Literale vorhanden");
-
-      VBox box = new VBox(4);
-      List<CheckBox> checkBoxes = new ArrayList<>();
-      Set<CMetamodel.Literal> selected = new HashSet<>();
-      // Vorbelegung
-      Object val = Rule.getValue();
-      if (val instanceof Set<?> set) set.forEach(o -> { if (o instanceof CMetamodel.Literal lit) selected.add(lit); });
-      else if (val instanceof CMetamodel.Literal lit) selected.add(lit);
-
-      VBox inner = new VBox(4);
-      for (CMetamodel.Literal literal : enumExpression.literals.stream().sorted((l1, l2) -> l1.name.compareTo(l2.name)).collect(Collectors.toCollection(ArrayList::new))) {
-        CheckBox cb = new CheckBox(literal.name);
-        inner.getChildren().add(cb);
-        if (selected.contains(literal)) cb.setSelected(true);
-        cb.selectedProperty().addListener((obs, old, isSelected) -> {
-          if (isSelected) selected.add(literal);
-          else selected.remove(literal);
-          if (selected.isEmpty()) Rule.setValue(null);
-          else Rule.setValue(new HashSet<>(selected));
-        });
-        checkBoxes.add(cb);
-      }
-      ScrollPane scroll = new ScrollPane(inner);
-      scroll.setFitToWidth(true);
-      scroll.setPrefViewportHeight(80);
-      box.getChildren().add(scroll);
-      return box;
+      if (null == Against || Against.isEmpty()) return valuesToValidate.isEmpty();
+      return Against.stream().anyMatch(v -> valuesToValidate.contains(v));
     }
 
-    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.ENUMERATION == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getEnumInput(Rule, Feature); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Contains; }
   };
 
 
-  @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.SubstantialTypeExpression>> EQUALS_SELF_RELATION = new IOperator<>() {
+  @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.SubstantialTypeExpression>> SELF_RELATION_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Set<CMetamodel.SubstantialTypeExpression> Against) {
       Set<CMetamodel.SubstantialTypeExpression> valuesToValidate = new HashSet<>();
       if (Value instanceof Collection<?> listValue) listValue.stream().filter(v -> v instanceof CMetamodel.SubstantialTypeExpression).forEach(v -> valuesToValidate.add((CMetamodel.SubstantialTypeExpression) v));
@@ -403,9 +424,9 @@ public final class Operators {
       else return Against.containsAll(valuesToValidate);
     }
 
-    @Override public boolean compatibleWith(CMetamodel.FeatureType FeatureType) { return CMetamodel.FeatureType.SELF_RELATION == FeatureType; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.SELF_RELATION == Feature.featureType; }
 
-    @Override public Node getInput(CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
       Set<CDatamodel.BuildingBlock> buildingBlocks = Data.BuildingBlocks.get(ForType).stream().sorted((bb1, bb2) -> bb1.name.compareTo(bb2.name)).collect(Collectors.toCollection(LinkedHashSet::new));
       Set<CDatamodel.BuildingBlock> selected = new HashSet<>();
       Object val = Rule.getValue();
@@ -439,13 +460,92 @@ public final class Operators {
   };
 
 
-  @SuppressWarnings("rawtypes") public static Set<IOperator> getSupportedOperators(CMetamodel.FeatureType FeatureType) {
+  private static Node getSTEInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CDatamodel Data) {
+    CMetamodel.TypeExpression te = Feature.metamodel.SubstantialTypeExpressions.stream().filter(rte -> rte.persistentName.equals(Feature.type)).findFirst().orElse(null);
+    if (null != te) {
+      if (null == Rule.getValue()) Rule.setValue(new CFilter(Filter.getFilterName() + " \u2192 " + Feature.name, te, new CGroup(CGroup.GroupOperator.AND)));
+      CFilter filter = (CFilter)Rule.getValue();
+      Button btnEdit = new Button(CTranslations.INSTANCE.Operation_Button_Complex);
+      btnEdit.setOnAction(e -> {
+        JFXRuleBuilderDialog dialog = new JFXRuleBuilderDialog(Data, te, filter, updated -> Rule.setValue(updated));
+        dialog.showAndWait();
+      });
+      btnEdit.setMaxWidth(Double.MAX_VALUE);
+      VBox vbox = new VBox(8, btnEdit);
+      vbox.setFillWidth(true);
+      return vbox;
+    } else return new Label("<UNKNOWN>");
+  }
+  @SuppressWarnings("unused") public final static IOperator<CFilter> SUBSTANTIALTYPE_COMPLEX_ANY = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, CFilter Against) {
+      if ((null != Against) && (null != Value) && (Value instanceof Collection valueList) && !valueList.isEmpty()) return valueList.stream().anyMatch(e -> Against.evaluate((CDatamodel.Element)e));
+      else return false;
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.SELF_RELATION == Feature.featureType || (CMetamodel.FeatureType.RELATION == Feature.featureType && Feature.referencesBuildingblock()); }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getSTEInput(Filter, Rule, Feature, Data); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_ComplexAny; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<CFilter> SUBSTANTIALTYPE_COMPLEX_ALL = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, CFilter Against) {
+      if ((null != Against) && (null != Value) && (Value instanceof Collection valueList) && !valueList.isEmpty()) return valueList.stream().allMatch(e -> Against.evaluate((CDatamodel.Element)e));
+      else return false;
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.SELF_RELATION == Feature.featureType || (CMetamodel.FeatureType.RELATION == Feature.featureType && Feature.referencesBuildingblock()); }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getSTEInput(Filter, Rule, Feature, Data); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_ComplexAll; }
+  };
+
+
+  private static Node getRTEInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CDatamodel Data) {
+    CMetamodel.TypeExpression te = Feature.metamodel.RelationshipTypeExpressions.stream().filter(rte -> rte.persistentName.equals(Feature.type)).findFirst().orElse(null);
+    if (null != te) {
+      if (null == Rule.getValue()) Rule.setValue(new CFilter(Filter.getFilterName() + " \u2192 " + Feature.name, te, new CGroup(CGroup.GroupOperator.AND)));
+      CFilter filter = (CFilter)Rule.getValue();
+      Button btnEdit = new Button(CTranslations.INSTANCE.Operation_Button_Complex);
+      btnEdit.setOnAction(e -> {
+        JFXRuleBuilderDialog dialog = new JFXRuleBuilderDialog(Data, te, filter, updated -> Rule.setValue(updated));
+        dialog.showAndWait();
+      });
+      btnEdit.setMaxWidth(Double.MAX_VALUE);
+      VBox vbox = new VBox(8, btnEdit);
+      vbox.setFillWidth(true);
+      return vbox;
+    } else return new Label("<UNKNOWN>");
+  }
+  @SuppressWarnings("unused") public final static IOperator<CFilter> RELATION_COMPLEX_ANY = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, CFilter Against) {
+      if ((null != Against) && (null != Value) && (Value instanceof Collection valueList) && !valueList.isEmpty()) return valueList.stream().anyMatch(e -> Against.evaluate((CDatamodel.Element)e));
+      else return false;
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.RELATION == Feature.featureType && !Feature.referencesBuildingblock(); }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getRTEInput(Filter, Rule, Feature, Data); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_ComplexAny; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<CFilter> RELATION_COMPLEX_ALL = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, CFilter Against) {
+      if ((null != Against) && (null != Value) && (Value instanceof Collection valueList) && !valueList.isEmpty()) return valueList.stream().allMatch(e -> Against.evaluate((CDatamodel.Element)e));
+      else return false;
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.RELATION == Feature.featureType && !Feature.referencesBuildingblock(); }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getRTEInput(Filter, Rule, Feature, Data); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_ComplexAll; }
+  };
+
+
+
+
+
+  @SuppressWarnings("rawtypes") public static Set<IOperator> getSupportedOperators(CMetamodel.Feature Feature) {
     Set<IOperator> result = new HashSet<>();
     for (Field f : Operators.class.getDeclaredFields()) {
       try {
         Object o = f.get(null);
         if (o instanceof IOperator operator) {
-          if (operator.compatibleWith(FeatureType)) result.add(operator);
+          if (operator.compatibleWith(Feature)) result.add(operator);
         }
       } catch (IllegalAccessException e) { throw new RuntimeException(e); }
     }

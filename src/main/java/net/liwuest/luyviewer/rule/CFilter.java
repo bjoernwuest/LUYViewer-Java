@@ -8,10 +8,11 @@ public final class CFilter extends AEvaluatable<CFilter> {
   private CMetamodel.TypeExpression m_TypeExpression;
   private CGroup m_Group;
 
-  public CFilter(CMetamodel.TypeExpression TypeExpression) { this(TypeExpression, new CGroup(CGroup.GroupOperator.AND)); }
-  public CFilter(CMetamodel.TypeExpression TypeExpression, CGroup Group) {
+  public CFilter(String Filtername, CMetamodel.TypeExpression TypeExpression) { this(Filtername, TypeExpression, new CGroup(CGroup.GroupOperator.AND)); }
+  public CFilter(String Filtername, CMetamodel.TypeExpression TypeExpression, CGroup Group) {
     assert null != TypeExpression;
     assert null != Group;
+    m_FilterName = Filtername;
     m_TypeExpression = TypeExpression;
     m_Group = Group;
   }
@@ -28,8 +29,7 @@ public final class CFilter extends AEvaluatable<CFilter> {
   }
   @Override public boolean isValid() { return (m_TypeExpression != null) && m_Group.isValid(); }
   @Override public CFilter copy() {
-    CFilter result = new CFilter(m_TypeExpression, m_Group);
-    result.setFilterName(m_FilterName);
+    CFilter result = new CFilter(m_FilterName, m_TypeExpression, m_Group);
     return result;
   }
 }

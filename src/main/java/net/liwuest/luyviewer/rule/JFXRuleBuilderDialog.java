@@ -13,7 +13,6 @@ import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.util.CEventBus;
 import net.liwuest.luyviewer.util.CTranslations;
 
-import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -52,6 +51,13 @@ public class JFXRuleBuilderDialog extends Stage {
     private Pane createContent() {
         VBox root = new VBox(10);
         root.setPadding(new Insets(15));
+        // Filtername oben anzeigen
+        Label filterNameLabel = new Label(workingCopy.getFilterName());
+        filterNameLabel.setWrapText(true);
+        filterNameLabel.setMaxWidth(Double.MAX_VALUE);
+        filterNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 1.1em; -fx-alignment: top-left;");
+        VBox.setVgrow(filterNameLabel, Priority.NEVER);
+        root.getChildren().add(filterNameLabel);
         ScrollPane scrollPane = new ScrollPane();
         VBox filterBox = new VBox(10);
         renderGroup(filterBox, workingCopy.getRootGroup());
@@ -84,14 +90,32 @@ public class JFXRuleBuilderDialog extends Stage {
     private void renderGroup(VBox parent, CGroup group) {
         VBox groupBox = new VBox(8);
         groupBox.setStyle("-fx-border-color: #bbb; -fx-border-radius: 4; -fx-padding: 8; -fx-background-color: #f9f9f9;");
-        // Gruppen-Operator
+        // Gruppen-Operator und Entfernen-Button in einer Zeile
+        HBox opRow = new HBox(8);
         ComboBox<CGroup.GroupOperator> opBox = new ComboBox<>(FXCollections.observableArrayList(CGroup.GroupOperator.values()));
         opBox.setValue(group.getOperator());
         opBox.valueProperty().addListener((obs, old, val) -> {
             group.setOperator(val);
             refresh();
         });
-        HBox opRow = new HBox(8, new Label(CTranslations.INSTANCE.Label_Group), opBox); // Übersetzung
+        opRow.getChildren().addAll(new Label(CTranslations.INSTANCE.Label_Group), opBox); // Übersetzung
+        if (group != workingCopy.getRootGroup()) {
+            Button btnRemoveGroup = new Button();
+            btnRemoveGroup.setTooltip(new Tooltip(CTranslations.INSTANCE.Button_Remove)); // Übersetzung
+            btnRemoveGroup.setGraphic(new Label("\uD83D\uDDD1"));
+            btnRemoveGroup.setMinWidth(32);
+            btnRemoveGroup.setMinHeight(32);
+            btnRemoveGroup.setMaxHeight(32);
+            btnRemoveGroup.setStyle("-fx-padding: 2 4 2 4;");
+            btnRemoveGroup.setOnAction(e -> {
+                if (parent.getChildren().contains(groupBox)) parent.getChildren().remove(groupBox);
+                if (group.getParentGroup() != null) group.getParentGroup().removeRule(group);
+                refresh();
+            });
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            opRow.getChildren().addAll(spacer, btnRemoveGroup);
+        }
         groupBox.getChildren().add(opRow);
         // Regeln als Grid
         GridPane grid = new GridPane();
@@ -176,7 +200,7 @@ public class JFXRuleBuilderDialog extends Stage {
         featureBox.valueProperty().addListener((obs, old, val) -> {
             rule.setFeature(val);
             if (val != null) {
-                var supported = FXCollections.observableArrayList(Operators.getSupportedOperators(val.featureType));
+                var supported = FXCollections.observableArrayList(Operators.getSupportedOperators(val));
                 opBox.setItems(supported);
                 Operators.IOperator currentOp = opBox.getValue();
                 if (currentOp != null && supported.contains(currentOp)) {}
@@ -189,7 +213,7 @@ public class JFXRuleBuilderDialog extends Stage {
             valueInputWrapper.getChildren().setAll(createValueInput(rule, val));
         });
         if (rule.getFeature() != null)
-            opBox.setItems(FXCollections.observableArrayList(Operators.getSupportedOperators(rule.getFeature().featureType)));
+            opBox.setItems(FXCollections.observableArrayList(Operators.getSupportedOperators(rule.getFeature())));
         opBox.setValue(rule.getOperator());
         opBox.valueProperty().addListener((obs, old, val) -> {
             rule.setOperator(val);
@@ -213,7 +237,7 @@ public class JFXRuleBuilderDialog extends Stage {
     private void refresh() { setScene(new Scene(createContent(), getScene().getWidth(), getScene().getHeight())); }
 
     private Node createValueInput(CRule rule, CMetamodel.Feature feature) {
-        if ((null != rule) && (null != rule.getOperator())) return rule.getOperator().getInput(rule, feature, forType, data);
+        if ((null != rule) && (null != rule.getOperator())) return rule.getOperator().getInput(workingCopy, rule, feature, forType, data);
         else return new Label("");
     }
 }

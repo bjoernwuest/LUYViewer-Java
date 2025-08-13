@@ -12,6 +12,7 @@ public final class CGroup extends AEvaluatable<CGroup> {
     NOT
   }
 
+  private CGroup m_Parent = null;
   private GroupOperator m_Operator;
   private LinkedHashSet<AEvaluatable> m_Rules = new LinkedHashSet<>();
 
@@ -34,10 +35,12 @@ public final class CGroup extends AEvaluatable<CGroup> {
     return this;
   }
 
+  public CGroup getParentGroup() { return m_Parent; }
+
   public LinkedHashSet<AEvaluatable> getRules() { return new LinkedHashSet<>(m_Rules); }
   public CGroup addRule(AEvaluatable Rule) { return addRuleLast(Rule); }
-  public CGroup addRuleFirst(AEvaluatable Rule) { if (null != Rule) m_Rules.addFirst(Rule); CEventBus.publish(new EventEvaluatableChanged()); return this; }
-  public CGroup addRuleLast(AEvaluatable Rule) { if (null != Rule) m_Rules.addLast(Rule); CEventBus.publish(new EventEvaluatableChanged()); return this; }
+  public CGroup addRuleFirst(AEvaluatable Rule) { if (null != Rule) m_Rules.addFirst(Rule); if (Rule instanceof CGroup g) g.m_Parent = this; CEventBus.publish(new EventEvaluatableChanged()); return this; }
+  public CGroup addRuleLast(AEvaluatable Rule) { if (null != Rule) m_Rules.addLast(Rule); if (Rule instanceof CGroup g) g.m_Parent = this; CEventBus.publish(new EventEvaluatableChanged()); return this; }
   public CGroup addRuleAtIndex(AEvaluatable Rule, int Index) {
     if (null != Rule) {
       AEvaluatable[] evals = m_Rules.toArray(new AEvaluatable[0]);
@@ -46,10 +49,11 @@ public final class CGroup extends AEvaluatable<CGroup> {
       m_Rules.add(Rule);
       for (int i = Math.max(0, Math.min(Index, evals.length)); i < evals.length; i++) { m_Rules.add(evals[i]); }
     }
+    if (Rule instanceof CGroup g) g.m_Parent = this;
     CEventBus.publish(new EventEvaluatableChanged());
     return this;
   }
-  public CGroup removeRule(AEvaluatable Rule) { m_Rules.remove(Rule); CEventBus.publish(new EventEvaluatableChanged()); return this; }
+  public CGroup removeRule(AEvaluatable Rule) { m_Rules.remove(Rule); if (Rule instanceof CGroup g) g.m_Parent = null; CEventBus.publish(new EventEvaluatableChanged()); return this; }
 
   @Override public boolean evaluate(final CDatamodel.Element Element) {
     if (m_Rules.isEmpty()) return true;

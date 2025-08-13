@@ -2,6 +2,7 @@
 package net.liwuest.luyviewer.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.liwuest.luyviewer.LUYViewer;
 import net.liwuest.luyviewer.util.CTranslations;
 
 import java.awt.Color;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +31,8 @@ public class CMetamodel {
         INTERFACE_DIRECTION,
         ENUMERATION,
         RELATION,
-        SELF_RELATION
+        SELF_RELATION,
+        BUILDING_BLOCK_TYPE
     }
     public final static List<String> NonRelationshipFeatureNames = Arrays.asList("boolean", "date", "date_time", "decimal", "integer", "io.luy.model.Direction", "richtext", "string");
     public final static List<String> SelfRelationFeatureNames = Arrays.asList("children", "parent", "baseComponents", "parentComponents", "predecessors", "successors", "generalisation", "specialisations");
@@ -195,6 +198,16 @@ public class CMetamodel {
                     break;
             }
         }
+
+        StringBuilder loadOutput = new StringBuilder("Loaded LUY metamodel from file '" + filename + "'");
+        loadOutput.append("\n\tSubstantial types:");
+        metamodel.SubstantialTypeExpressions.forEach(e -> loadOutput.append("\n\t\t" + e.persistentName + " with " + e.features.size() + " features"));
+        loadOutput.append("\n\tRelationship types:");
+        metamodel.RelationshipTypeExpressions.forEach(e -> loadOutput.append("\n\t\t" + e.persistentName + " with " + e.features.size() + " features"));
+        loadOutput.append("\n\tEnumeration types:");
+        metamodel.EnumerationExpressions.forEach(e -> loadOutput.append("\n\t\t" + e.persistentName + " with " + e.literals.size() + " literals"));
+        LUYViewer.LOGGER.log(Level.INFO, loadOutput.toString());
+
 
         return metamodel;
     }

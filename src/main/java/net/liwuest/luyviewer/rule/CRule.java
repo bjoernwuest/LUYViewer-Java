@@ -17,7 +17,7 @@ public final class CRule extends AEvaluatable<CRule> {
   public CRule(CMetamodel.Feature Feature, Object Value) { this(Feature, null, Value); }
   public CRule(CMetamodel.Feature Feature, Operators.IOperator Operator) { this(Feature, Operator, null); }
   public CRule(CMetamodel.Feature Feature, Operators.IOperator Operator, Object Value) {
-    if ((null != Feature) && (null != Operator)) assert Operator.compatibleWith(Feature.featureType);
+    if ((null != Feature) && (null != Operator)) assert Operator.compatibleWith(Feature);
     m_Feature = Feature;
     m_Operator = Operator;
     m_Value = Value;
@@ -26,7 +26,7 @@ public final class CRule extends AEvaluatable<CRule> {
   public CMetamodel.Feature getFeature() { return m_Feature; }
   public CRule setFeature(CMetamodel.Feature Feature) {
     if (null != Feature) {
-      if (null != m_Operator) assert m_Operator.compatibleWith(Feature.featureType);
+      if (null != m_Operator) assert m_Operator.compatibleWith(Feature);
       m_Feature = Feature;
       CEventBus.publish(new EventEvaluatableChanged());
     }
@@ -35,7 +35,7 @@ public final class CRule extends AEvaluatable<CRule> {
   public Operators.IOperator getOperator() { return m_Operator; }
   public CRule setOperator(Operators.IOperator Operator) {
     if (null != Operator) {
-      if (null != m_Feature) assert Operator.compatibleWith(m_Feature.featureType);
+      if (null != m_Feature) assert Operator.compatibleWith(m_Feature);
       m_Operator = Operator;
       CEventBus.publish(new EventEvaluatableChanged());
     }

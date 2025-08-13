@@ -1,6 +1,7 @@
 package net.liwuest.luyviewer.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.liwuest.luyviewer.LUYViewer;
 import net.liwuest.luyviewer.util.CTranslations;
 
 import java.io.File;
@@ -11,6 +12,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.logging.Level;
 
 public class CDatamodel {
   /**
@@ -112,7 +114,7 @@ public class CDatamodel {
               case RELATION: return value;
               case SELF_RELATION: return value;
               default: {
-                System.out.println("CDatamodel -> Element -> parse additional data, unhandled feature type: " + feature.type + " with value: " + value);
+                LUYViewer.LOGGER.warning("CDatamodel -> Element -> parse additional data, unhandled feature type: " + feature.type + " with value: " + value);
                 return value;
               }
             }
@@ -131,7 +133,7 @@ public class CDatamodel {
               if (e instanceof Map element) {
                 Element luyElement = datamodel.lookupById(Integer.parseInt(element.getOrDefault("id", "-1").toString()));
                 if (null != luyElement) Relationships.get(feature).add(luyElement);
-                else System.out.println(feature.persistentName);
+                else LUYViewer.LOGGER.warning("Could not find LUY building block referenced by '" + feature.persistentName + "'");
               }
             });
             AdditionalData.put(feature.persistentName, Relationships.get(feature));
@@ -233,6 +235,13 @@ public class CDatamodel {
     // Resolve all kind of relations
     datamodel.BuildingBlocks.values().forEach(bbList -> bbList.forEach(bb -> bb.parseRelationships(datamodel)));
     datamodel.Relationships.values().forEach(relList -> relList.forEach(rel -> rel.parseRelationships(datamodel)));
+
+    StringBuilder loadOutput = new StringBuilder("Loaded LUY data from file '" + filename + "'");
+    loadOutput.append("\n\tBuilding blocks:");
+    datamodel.BuildingBlocks.entrySet().forEach(e -> loadOutput.append("\n\t\t" + e.getKey().persistentName + ": " + e.getValue().size()));
+    loadOutput.append("\n\tRelations:");
+    datamodel.Relationships.entrySet().forEach(e -> loadOutput.append("\n\t\t" + e.getKey().persistentName + ": " + e.getValue().size()));
+    LUYViewer.LOGGER.log(Level.INFO, loadOutput.toString());
 
     return datamodel;
   }

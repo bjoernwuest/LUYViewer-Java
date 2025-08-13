@@ -26,6 +26,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 
 /**
  * Main window of the LUYViewer application.
@@ -79,14 +80,15 @@ public class JFXMainWindow {
             dialog.show();
         });
 
-        setupUI(downloadButton);
+        CEventBus.subscribe(event -> Platform.runLater(() -> statusBar.setText(CTranslations.INSTANCE.Status_BuildDataView)), CFilteredAndSortedDatamodel.BuildCachedDataview.class);
+        CEventBus.subscribe(event -> Platform.runLater(() -> statusBar.setText(CTranslations.INSTANCE.Status_Ready)), CFilteredAndSortedDatamodel.FinishedBuildingCachedDataview.class);
 
-        CEventBus.subscribe(event -> statusBar.setText(CTranslations.INSTANCE.Status_BuildDataView), CFilteredAndSortedDatamodel.BuildCachedDataview.class);
-        CEventBus.subscribe(event -> statusBar.setText(CTranslations.INSTANCE.Status_Ready), CFilteredAndSortedDatamodel.FinishedBuildingCachedDataview.class);
+        setupUI(downloadButton);
+        stage.show();
     }
 
     private void loadDataModel(FileListEntry selectedItem) {
-        statusBar.setText(CTranslations.INSTANCE.Status_LoadingDataFromLUYFile);
+        Platform.runLater(() -> statusBar.setText(CTranslations.INSTANCE.Status_LoadingDataFromLUYFile));
 
         Task<CDatamodel> loadTask = new Task<CDatamodel>() {
             @Override
@@ -111,13 +113,13 @@ public class JFXMainWindow {
                 Scene scene = stage.getScene();
                 if (scene != null && scene.getRoot() instanceof BorderPane root) root.setCenter(buildingBlockList);
             }
-            statusBar.setText(CTranslations.INSTANCE.Status_Ready);
+            Platform.runLater(() -> statusBar.setText(CTranslations.INSTANCE.Status_Ready));
         });
 
         loadTask.setOnFailed(event -> {
             Throwable exception = loadTask.getException();
-            exception.printStackTrace();
-            statusBar.setText(String.format(CTranslations.INSTANCE.Status_DownloadError, exception.getMessage()));
+            LUYViewer.LOGGER.log(Level.SEVERE, "Failed to download LUY data model", exception);
+            Platform.runLater(() -> statusBar.setText(String.format(CTranslations.INSTANCE.Status_DownloadError, exception.getMessage())));
         });
 
         Thread loadThread = new Thread(loadTask);
@@ -142,7 +144,10 @@ public class JFXMainWindow {
 
         // Status bar styling
         statusBar.setPadding(new Insets(5, 10, 5, 10));
-        statusBar.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #d0d0d0; -fx-border-width: 1 0 0 0;");
+        statusBar.setStyle("-fx-background-color: #f0f0f0; -fx-border-color: #d0d0d0; -fx-border-width: 1 0 0 0; -fx-text-fill: #222;");
+        statusBar.setMaxWidth(Double.MAX_VALUE);
+        statusBar.setText(CTranslations.INSTANCE.Status_Initial);
+        BorderPane.setAlignment(statusBar, javafx.geometry.Pos.CENTER_LEFT);
 
         // Main layout
         BorderPane root = new BorderPane();

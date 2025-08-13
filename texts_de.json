@@ -27,6 +27,12 @@
   "Operation_Any": "beliebig",
   "Operation_Contains": "enthält",
   "Operation_StartsWith": "beginnt mit",
-  "Operation_EndsWith": "endet mit"
+  "Operation_EndsWith": "endet mit",
+  "Status_Initial": "Wählen Sie eine Datendatei oder laden Sie eine Datendatei von LUY",
+  "Status_LoadLUYDataFile": "Lade Daten aus LUY-Datei...",
+  "Status_BuildDataView": "Bereite die Datenansicht vor",
+  "Status_Ready": "Bereit",
+  "Operation_Button_Complex": "komplexe Regel",
+  "Operation_ComplexAny": "irgendeine",
+  "Operation_ComplexAll": "alle"
 }
-
