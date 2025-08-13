@@ -145,7 +145,7 @@ public final class CFilteredAndSortedDatamodel {
         }
       }
       cachedFilteredAndSortedData.put(Type, result);
-      LUYViewer.LOGGER.info("Filtered for type " + Type.name + " from " + resultData + " entries to " + result.size());
+      LUYViewer.LOGGER.info("Filtered for type " + Type.name + " from " + resultDataEntries + " entries to " + result.size());
     }
     return cachedFilteredAndSortedData.get(Type);
   }
