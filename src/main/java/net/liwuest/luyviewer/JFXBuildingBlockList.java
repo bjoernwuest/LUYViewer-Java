@@ -18,8 +18,6 @@ import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.rule.CFilter;
 import net.liwuest.luyviewer.rule.JFXRuleBuilderDialog;
 import net.liwuest.luyviewer.util.CTranslations;
-import net.liwuest.luyviewer.LUYViewer;
-import java.util.logging.Level;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -57,7 +55,7 @@ public class JFXBuildingBlockList extends Pane {
                 JFXRuleBuilderDialog dialog = new net.liwuest.luyviewer.rule.JFXRuleBuilderDialog(Data.getRawModel(), currentSelectedType, filter, f -> {
                     Data.setFilter(f, currentSelectedType);
                     updateFilterButtonIcon(filterButton);
-                    updateTable();
+                    updateTable(currentSelectedType);
                 });
                 dialog.showAndWait();
             }
@@ -114,10 +112,11 @@ public class JFXBuildingBlockList extends Pane {
         // Update table when type changes
         typeComboBox.setOnAction(e -> {
             currentSelectedType = typeComboBox.getSelectionModel().getSelectedItem();
-            updateTable();
+            LUYViewer.LOGGER.info("Type changed to " + currentSelectedType.name);
+            updateTable(currentSelectedType);
             updateFilterButtonIcon(filterButton); // Button-Label nach Typwechsel aktualisieren
         });
-        updateTable();
+        updateTable(currentSelectedType);
     }
 
     private synchronized CFilteredAndSortedDatamodel.SortOrder getNextSortorder(CMetamodel.Feature Feature) {
@@ -132,14 +131,15 @@ public class JFXBuildingBlockList extends Pane {
         return result;
     }
 
-    private void updateTable() {
-        CMetamodel.TypeExpression selectedType = typeComboBox.getSelectionModel().getSelectedItem();
+    private void updateTable(CMetamodel.TypeExpression SelectedType) {
+        LUYViewer.LOGGER.info("Updating table for type " + SelectedType.name);
         tableView.getColumns().clear();
         tableView.getItems().clear();
-        if (selectedType == null) return;
+        if (SelectedType == null) return;
 
-        LinkedHashSet<CMetamodel.Feature> features = Data.getOrderedFeatures(selectedType);
+        LinkedHashSet<CMetamodel.Feature> features = Data.getOrderedFeatures(SelectedType);
         if (features == null) return;
+        LUYViewer.LOGGER.info("Number of features of type: " + features.size());
 
         // Create columns
         int colIdx = 0;
@@ -156,7 +156,7 @@ public class JFXBuildingBlockList extends Pane {
                     subCol.setCellValueFactory(cellData -> {
                         CDatamodel.Element element = cellData.getValue();
                         int rowIndex = tableView.getItems().indexOf(element);
-                        return new javafx.beans.property.SimpleObjectProperty<>(renderRelationshipCell(selectedType, element, feature, relFeature, rowIndex, columnIndex, relColumnIndex));
+                        return new javafx.beans.property.SimpleObjectProperty<>(renderRelationshipCell(SelectedType, element, feature, relFeature, rowIndex, columnIndex, relColumnIndex));
                     });
                     subCol.setResizable(true);
                     // Dynamische Breite für Subspalten
@@ -178,7 +178,7 @@ public class JFXBuildingBlockList extends Pane {
                 col.setCellValueFactory(cellData -> {
                     CDatamodel.Element element = cellData.getValue();
                     int rowIndex = tableView.getItems().indexOf(element);
-                    return new javafx.beans.property.SimpleObjectProperty<>(renderCell(selectedType, element, feature, rowIndex, columnIndex));
+                    return new javafx.beans.property.SimpleObjectProperty<>(renderCell(SelectedType, element, feature, rowIndex, columnIndex));
                 });
                 col.setResizable(true);
                 // Dynamische Breite für normale Spalten
@@ -193,10 +193,8 @@ public class JFXBuildingBlockList extends Pane {
         }
 
         // Fill rows
-        Set<? extends CDatamodel.Element> elements = Data.getFilteredAndSortedData(selectedType);
-        if (elements != null) {
-            tableView.setItems(FXCollections.observableArrayList(elements));
-        }
+        Set<? extends CDatamodel.Element> elements = Data.getFilteredAndSortedData(SelectedType);
+        if (elements != null) tableView.setItems(FXCollections.observableArrayList(elements));
     }
 
     Node renderCell(CMetamodel.TypeExpression Type, CDatamodel.Element Element, CMetamodel.Feature Feature, int Row, int Column) {
