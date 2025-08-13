@@ -147,33 +147,35 @@ public class JFXBuildingBlockList extends Pane {
             int colIdx = 0;
             for (CMetamodel.Feature feature : features) {
                 final int columnIndex = colIdx;
-                if ((CMetamodel.FeatureType.RELATION == feature.featureType) && !(CMetamodel.FeatureType.SELF_RELATION == feature.featureType)) {
+                if ((CMetamodel.FeatureType.RELATION == feature.featureType) && !(CMetamodel.FeatureType.SELF_RELATION == feature.featureType) && !feature.referencesBuildingblock()) {
                     Set<CMetamodel.Feature> relFeatures = Data.getFeaturesOfRelation(feature);
-                    javafx.scene.control.TableColumn<CDatamodel.Element, Node> parentCol = new TableColumn<>(feature.name);
-                    int relColIdx = 0;
-                    for (CMetamodel.Feature relFeature : relFeatures) {
-                        final int relColumnIndex = relColIdx;
-                        TableColumn<CDatamodel.Element, Node> subCol = new TableColumn<>(relFeature.name);
-                        subCol.setUserData(relFeature);
-                        subCol.setCellValueFactory(cellData -> {
-                            CDatamodel.Element element = cellData.getValue();
-                            int rowIndex = tableView.getItems().indexOf(element);
-                            return new javafx.beans.property.SimpleObjectProperty<>(renderRelationshipCell(SelectedType, element, feature, relFeature, rowIndex, columnIndex, relColumnIndex));
-                        });
-                        subCol.setResizable(true);
-                        // Dynamische Breite für Subspalten
-                        double headerWidth = computeTextWidth(subCol.getText());
-                        double cellWidth = computeMaxCellWidth(subCol, tableView, 10); // 10 Zeilen prüfen
-                        subCol.setPrefWidth(Math.max(120, Math.max(headerWidth, cellWidth) + 24));
-                        // Disable sorting if not sortable
-                        subCol.setSortable(relFeature.isSortable);
-                        parentCol.getColumns().add(subCol);
-                        relColIdx++;
-                    }
-                    parentCol.setResizable(true);
-                    parentCol.setMinWidth(120 * Math.max(1, relFeatures.size())); // Mindestbreite für Parent
-                    parentCol.setSortable(false); // Parent columns are not directly sortable
-                    tableView.getColumns().add(parentCol);
+                    if (null != relFeatures) {
+                        javafx.scene.control.TableColumn<CDatamodel.Element, Node> parentCol = new TableColumn<>(feature.name);
+                        int relColIdx = 0;
+                        for (CMetamodel.Feature relFeature : relFeatures) {
+                            final int relColumnIndex = relColIdx;
+                            TableColumn<CDatamodel.Element, Node> subCol = new TableColumn<>(relFeature.name);
+                            subCol.setUserData(relFeature);
+                            subCol.setCellValueFactory(cellData -> {
+                                CDatamodel.Element element = cellData.getValue();
+                                int rowIndex = tableView.getItems().indexOf(element);
+                                return new javafx.beans.property.SimpleObjectProperty<>(renderRelationshipCell(SelectedType, element, feature, relFeature, rowIndex, columnIndex, relColumnIndex));
+                            });
+                            subCol.setResizable(true);
+                            // Dynamische Breite für Subspalten
+                            double headerWidth = computeTextWidth(subCol.getText());
+                            double cellWidth = computeMaxCellWidth(subCol, tableView, 10); // 10 Zeilen prüfen
+                            subCol.setPrefWidth(Math.max(120, Math.max(headerWidth, cellWidth) + 24));
+                            // Disable sorting if not sortable
+                            subCol.setSortable(relFeature.isSortable);
+                            parentCol.getColumns().add(subCol);
+                            relColIdx++;
+                        }
+                        parentCol.setResizable(true);
+                        parentCol.setMinWidth(120 * Math.max(1, relFeatures.size())); // Mindestbreite für Parent
+                        parentCol.setSortable(false); // Parent columns are not directly sortable
+                        tableView.getColumns().add(parentCol);
+                    } else LUYViewer.LOGGER.warning("No features for relation " + feature.name);
                 } else {
                     TableColumn<CDatamodel.Element, Node> col = new TableColumn<>(feature.name);
                     col.setUserData(feature);
