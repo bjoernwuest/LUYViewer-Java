@@ -283,6 +283,13 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"net.liwuest.luyviewer.util.CTranslations",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"sun.misc.Unsafe",
   "fields":[{"name":"theUnsafe"}]
 },
