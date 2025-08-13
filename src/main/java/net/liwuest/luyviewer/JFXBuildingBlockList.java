@@ -193,7 +193,9 @@ public class JFXBuildingBlockList extends Pane {
         }
 
         // Fill rows
+        LUYViewer.LOGGER.info("Filling rows for type " + SelectedType.name);
         Set<? extends CDatamodel.Element> elements = Data.getFilteredAndSortedData(SelectedType);
+        LUYViewer.LOGGER.info("Filling rows for type " + SelectedType.name + " - got " + elements.size() + " data items.");
         if (elements != null) tableView.setItems(FXCollections.observableArrayList(elements));
     }
 

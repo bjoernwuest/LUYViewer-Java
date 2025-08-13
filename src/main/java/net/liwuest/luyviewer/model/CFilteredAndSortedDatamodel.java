@@ -101,9 +101,11 @@ public final class CFilteredAndSortedDatamodel {
   }
 
   public synchronized LinkedHashSet<? extends CDatamodel.Element> getFilteredAndSortedData(CMetamodel.TypeExpression Type) {
+    LUYViewer.LOGGER.info("Getting filtered and sorted data for type " + Type);
     if (null == Type) return null;
 
     if (null == cachedFilteredAndSortedData.get(Type)) {
+      LUYViewer.LOGGER.info("Filter and sort data for type " + Type);
       Map.Entry<? extends CMetamodel.TypeExpression, ? extends Set<? extends CDatamodel.Element>> resultData = m_Data.BuildingBlocks.entrySet().stream().filter(e -> e.getKey().persistentName.equals(Type.persistentName)).findFirst().orElse(null);
       if (null == resultData) resultData = m_Data.Relationships.entrySet().stream().filter(e -> e.getKey().persistentName.equals(Type.persistentName)).findFirst().orElse(null);
       if (null == resultData) return null;
@@ -147,6 +149,7 @@ public final class CFilteredAndSortedDatamodel {
       cachedFilteredAndSortedData.put(Type, result);
       LUYViewer.LOGGER.info("Filtered for type " + Type.name + " from " + resultDataEntries + " entries to " + result.size());
     }
+    LUYViewer.LOGGER.info("Returning filtered and sorted data for type " + Type.name + " with " + cachedFilteredAndSortedData.get(Type).size() + " entries");
     return cachedFilteredAndSortedData.get(Type);
   }
 }
