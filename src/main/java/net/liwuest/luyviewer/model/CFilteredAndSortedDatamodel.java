@@ -1,5 +1,6 @@
 package net.liwuest.luyviewer.model;
 
+import net.liwuest.luyviewer.LUYViewer;
 import net.liwuest.luyviewer.rule.CFilter;
 import net.liwuest.luyviewer.util.CEventBus;
 
@@ -104,9 +105,9 @@ public final class CFilteredAndSortedDatamodel {
 
     if (null == cachedFilteredAndSortedData.get(Type)) {
       Map.Entry<? extends CMetamodel.TypeExpression, ? extends Set<? extends CDatamodel.Element>> resultData = m_Data.BuildingBlocks.entrySet().stream().filter(e -> e.getKey().persistentName.equals(Type.persistentName)).findFirst().orElse(null);
-      if (null == resultData)
-        resultData = m_Data.Relationships.entrySet().stream().filter(e -> e.getKey().persistentName.equals(Type.persistentName)).findFirst().orElse(null);
+      if (null == resultData) resultData = m_Data.Relationships.entrySet().stream().filter(e -> e.getKey().persistentName.equals(Type.persistentName)).findFirst().orElse(null);
       if (null == resultData) return null;
+      int resultDataEntries = resultData.getValue().size();
 
       LinkedHashSet<CMetamodel.Feature> filteredOrderingFeatures = getOrderedFeatures(Type);
       LinkedHashSet<? extends CDatamodel.Element> result = new LinkedHashSet<>(resultData.getValue());
@@ -144,6 +145,7 @@ public final class CFilteredAndSortedDatamodel {
         }
       }
       cachedFilteredAndSortedData.put(Type, result);
+      LUYViewer.LOGGER.info("Filtered for type " + Type.name + " from " + resultData + " entries to " + result.size());
     }
     return cachedFilteredAndSortedData.get(Type);
   }
