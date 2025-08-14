@@ -37,6 +37,8 @@ public final class CTranslations {
   @JsonProperty(value = "Button_AddGroup", defaultValue = "Add Group") public String Button_AddGroup;
   @JsonProperty(value = "Label_Rule", defaultValue = "Rule:") public String Label_Rule;
   @JsonProperty(value = "Button_Remove", defaultValue = "Remove") public String Button_Remove;
+  @JsonProperty(value = "Button_Export2Excel", defaultValue = "Export to Excel") public String Button_Export2Excel;
+  @JsonProperty(value = "Title_Export2Excel", defaultValue = "Export table as Excel file") public String Title_Export2Excel;
 
   @JsonProperty(value = "Status_Initial", defaultValue = "Select data file or download one from LUY") public String Status_Initial;
   @JsonProperty(value = "Status_LoadLUYDataFile", defaultValue = "Loading data from LUY file...") public String Status_LoadingDataFromLUYFile;

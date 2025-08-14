@@ -34,5 +34,7 @@
   "Status_Ready": "Bereit",
   "Operation_Button_Complex": "komplexe Regel",
   "Operation_ComplexAny": "irgendeine",
-  "Operation_ComplexAll": "alle"
+  "Operation_ComplexAll": "alle",
+  "Button_Export2Excel": "Als Excel exportieren",
+  "Title_Export2Excel": "Tabelle als Excel-Datei exportieren"
 }

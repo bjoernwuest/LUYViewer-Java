@@ -63,18 +63,15 @@ public class JFXBuildingBlockList extends Pane {
         });
         typeAndFilterBox.getChildren().add(filterButton);
         // Export-Button
-        Button exportButton = new Button("Export nach Excel");
+        Button exportButton = new Button(CTranslations.INSTANCE.Button_Export2Excel);
         exportButton.setOnAction(e -> {
             javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
-            fileChooser.setTitle("Exportiere Tabelle als Excel");
-            fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Excel-Datei (*.xlsx)", "*.xlsx"));
+            fileChooser.setTitle(CTranslations.INSTANCE.Title_Export2Excel);
+            fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Excel (*.xlsx)", "*.xlsx"));
             java.io.File file = fileChooser.showSaveDialog(this.getScene().getWindow());
             if (file != null) {
-                try {
-                    exportTableToExcel(file);
-                } catch (Exception ex) {
-                    LUYViewer.LOGGER.log(Level.SEVERE, "Fehler beim Export nach Excel", ex);
-                }
+                try { exportTableToExcel(file); }
+                catch (Exception ex) { LUYViewer.LOGGER.log(Level.SEVERE, "Failed to export to Excel", ex); }
             }
         });
         typeAndFilterBox.getChildren().add(exportButton);

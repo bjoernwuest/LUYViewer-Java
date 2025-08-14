@@ -34,5 +34,7 @@
   "Status_Ready": "Ready",
   "Operation_Button_Complex": "Complex rule",
   "Operation_ComplexAny": "match any",
-  "Operation_ComplexAll": "match all"
+  "Operation_ComplexAll": "match all",
+  "Button_Export2Excel": "Export to Excel",
+  "Title_Export2Excel": "Export table as Excel file"
 }

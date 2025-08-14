@@ -23,6 +23,13 @@ public class LUYViewer extends Application {
         String javaVersion = System.getProperty("java.version");
         String javafxVersion = System.getProperty("javafx.version");
 
+        // Anwendungssymbol setzen (PNG bevorzugt, da ICO oft nicht unterstützt)
+        try {
+            stage.getIcons().add(new javafx.scene.image.Image(getClass().getResourceAsStream("/favicon.png")));
+        } catch (Exception e) {
+            LOGGER.warning("favicon.png konnte nicht als Icon gesetzt werden: " + e.getMessage());
+        }
+
         try {
             new JFXMainWindow(stage);
             stage.show();
