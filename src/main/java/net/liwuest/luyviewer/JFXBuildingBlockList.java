@@ -62,6 +62,22 @@ public class JFXBuildingBlockList extends Pane {
             }
         });
         typeAndFilterBox.getChildren().add(filterButton);
+        // Export-Button
+        Button exportButton = new Button("Export nach Excel");
+        exportButton.setOnAction(e -> {
+            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+            fileChooser.setTitle("Exportiere Tabelle als Excel");
+            fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Excel-Datei (*.xlsx)", "*.xlsx"));
+            java.io.File file = fileChooser.showSaveDialog(this.getScene().getWindow());
+            if (file != null) {
+                try {
+                    exportTableToExcel(file);
+                } catch (Exception ex) {
+                    LUYViewer.LOGGER.log(Level.SEVERE, "Fehler beim Export nach Excel", ex);
+                }
+            }
+        });
+        typeAndFilterBox.getChildren().add(exportButton);
         vbox.getChildren().add(typeAndFilterBox);
         // TableView in eine horizontale ScrollPane einbetten, aber vertikales Scrollen der TableView überlassen
         javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane();
@@ -367,5 +383,50 @@ public class JFXBuildingBlockList extends Pane {
         String checkIcon = valid ? " \u2714" : ""; // Grüner Haken
         filterButton.setText(CTranslations.INSTANCE.Button_Filter + checkIcon); // Übersetzung
         filterButton.setTooltip(new javafx.scene.control.Tooltip(valid ? CTranslations.INSTANCE.Tooltip_FilterValid : CTranslations.INSTANCE.Tooltip_FilterInvalid)); // Übersetzung
+    }
+
+    /**
+     * Exportiert die aktuelle TableView als Excel-Datei (XLSX).
+     */
+    private void exportTableToExcel(java.io.File file) throws Exception {
+        // Falls die Dateiendung fehlt, automatisch .xlsx anhängen
+        String filePath = file.getAbsolutePath();
+        if (!filePath.toLowerCase().endsWith(".xlsx")) {
+            file = new java.io.File(filePath + ".xlsx");
+        }
+        // Apache POI verwenden
+        org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+        org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet(currentSelectedType.name);
+        // Spaltennamen
+        org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+        int colIdx = 0;
+        for (TableColumn<CDatamodel.Element, ?> col : tableView.getColumns()) {
+            headerRow.createCell(colIdx++).setCellValue(col.getText());
+        }
+        // Datenzeilen
+        int rowIdx = 1;
+        for (CDatamodel.Element elem : tableView.getItems()) {
+            org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx++);
+            colIdx = 0;
+            for (TableColumn<CDatamodel.Element, ?> col : tableView.getColumns()) {
+                Object cellValue = col.getCellObservableValue(elem) != null ? col.getCellObservableValue(elem).getValue() : null;
+                String text = "";
+                if (cellValue instanceof javafx.scene.control.Label label) {
+                    text = label.getText();
+                } else if (cellValue != null) {
+                    text = cellValue.toString();
+                }
+                row.createCell(colIdx++).setCellValue(text);
+            }
+        }
+        // Autosize columns
+        for (int i = 0; i < tableView.getColumns().size(); i++) {
+            sheet.autoSizeColumn(i);
+        }
+        // Datei speichern
+        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
     }
 }
