@@ -61,7 +61,8 @@ public class CDatamodel {
     throw new IllegalArgumentException("Could not parse date-time string: \"" + dateTimeString + "\" with any known format.");
   }
 
-  public abstract static class Element implements Comparable<Element> {
+  public abstract static class Element<T extends CMetamodel.TypeExpression> implements Comparable<Element> {
+    public final T metamodelType;
     public final int id;
     public final String elementURI;
     public final Instant lastModificationTime;
@@ -70,7 +71,8 @@ public class CDatamodel {
     public final Map<CMetamodel.Feature, List<CMetamodel.Literal>> Enumerations = new HashMap<>();
     public final Map<CMetamodel.Feature, List<Element>> Relationships = new HashMap<>();
 
-    Element(Map<String, Object> Data, CMetamodel.TypeExpression Type, CMetamodel Metamodel) {
+    Element(T MetamodelTypeExpression, Map<String, Object> Data, CMetamodel Metamodel) {
+      this.metamodelType = MetamodelTypeExpression;
       List<Object> idData = (List)Data.getOrDefault("id", new ArrayList<>());
       id = idData.isEmpty() ? -1 : Integer.parseInt(idData.get(0).toString()); Data.put("id", id);
       elementURI = Data.getOrDefault("elementURI", CTranslations.INSTANCE.Unknown_Placeholder).toString(); Data.put("elementURI", elementURI);
@@ -83,7 +85,7 @@ public class CDatamodel {
       Iterator<Map.Entry<String, Object>> iter = Data.entrySet().iterator();
       while (iter.hasNext()) {
         Map.Entry<String, Object> dataEntry = iter.next();
-        Type.features.stream().filter(f -> (CMetamodel.FeatureType.ENUMERATION == f.featureType) && f.persistentName.equals(dataEntry.getKey())).findFirst().ifPresent(f -> {
+        MetamodelTypeExpression.features.stream().filter(f -> (CMetamodel.FeatureType.ENUMERATION == f.featureType) && f.persistentName.equals(dataEntry.getKey())).findFirst().ifPresent(f -> {
           Enumerations.putIfAbsent(f, new ArrayList<>());
           if ((dataEntry.getValue() instanceof List valueList) && !valueList.isEmpty()) {
             Metamodel.EnumerationExpressions.stream().filter(ee -> ee.persistentName.equals(f.type)).findFirst().ifPresent(ee -> {
@@ -99,7 +101,7 @@ public class CDatamodel {
       AdditionalData = Data;
       // Transform types of additional data
       AdditionalData.forEach((k, v) -> {
-        Type.features.stream().filter(f -> f.persistentName.equals(k)).findFirst().ifPresent(feature -> {
+        MetamodelTypeExpression.features.stream().filter(f -> f.persistentName.equals(k)).findFirst().ifPresent(feature -> {
           if (v instanceof List valueList) AdditionalData.put(k, valueList.stream().map(value -> {
             switch (feature.featureType) {
               case BOOLEAN: return Boolean.parseBoolean(value.toString());
@@ -154,16 +156,20 @@ public class CDatamodel {
     }
 
     @Override public int compareTo(Element o) { return Integer.compare(this.id, o.id); }
+
+    @Override public String toString() {
+      if (this instanceof BuildingBlock bb) return bb.name + " (" + id + " of " + metamodelType.name + ")";
+      else return id + " of " + metamodelType.name;
+    }
   }
 
-  public final static class BuildingBlock extends Element {
-    public final CMetamodel.SubstantialTypeExpression metamodelType;
+  public final static class BuildingBlock extends Element<CMetamodel.SubstantialTypeExpression> {
     public final int hierarchy_level;
     public final String name;
     public final String description;
     public final int position;
     BuildingBlock(Map<String, Object> Data, CMetamodel.SubstantialTypeExpression Type, CMetamodel Metamodel) {
-      super(Data, Type, Metamodel);
+      super(Type, Data, Metamodel);
       List<Object> hierarchy_levelData = (List)Data.getOrDefault("$$hierarchy_level$$", new ArrayList<>());
       hierarchy_level = hierarchy_levelData.isEmpty() ? -1 : Integer.parseInt(hierarchy_levelData.get(0).toString()); Data.put("$$hierarchy_level$$", hierarchy_level);
       List<Object> nameData = (List)Data.getOrDefault("name", new ArrayList<>());
@@ -172,19 +178,14 @@ public class CDatamodel {
       description = descriptionData.isEmpty() ? "" : descriptionData.get(0).toString(); Data.put("description", description);
       List<Object> positionData = (List)Data.getOrDefault("position", new ArrayList<>());
       position = positionData.isEmpty() ? -1 : Integer.parseInt(positionData.get(0).toString()); Data.put("position", position);
-      metamodelType = Type;
+//      metamodelType = Type;
     }
 
     @Override Set<CMetamodel.Feature> getFeatures() { return metamodelType.features; }
   }
 
-  public final static class Relationship extends Element {
-    public final CMetamodel.RelationshipTypeExpression metamodelType;
-
-    Relationship(Map<String, Object> Data, CMetamodel.RelationshipTypeExpression Type, CMetamodel Metamodel) {
-      super(Data, Type, Metamodel);
-      metamodelType = Type;
-    }
+  public final static class Relationship extends Element<CMetamodel.RelationshipTypeExpression> {
+    Relationship(Map<String, Object> Data, CMetamodel.RelationshipTypeExpression Type, CMetamodel Metamodel) { super(Type, Data, Metamodel); }
 
     @Override Set<CMetamodel.Feature> getFeatures() { return metamodelType.features; }
   }

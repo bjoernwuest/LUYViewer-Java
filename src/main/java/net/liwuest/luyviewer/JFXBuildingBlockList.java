@@ -18,6 +18,9 @@ import net.liwuest.luyviewer.model.CMetamodel;
 import net.liwuest.luyviewer.rule.CFilter;
 import net.liwuest.luyviewer.rule.JFXRuleBuilderDialog;
 import net.liwuest.luyviewer.util.CTranslations;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -392,38 +395,28 @@ public class JFXBuildingBlockList extends Pane {
             file = new java.io.File(filePath + ".xlsx");
         }
         // Apache POI verwenden
-        org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
-        org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet(currentSelectedType.name);
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet(currentSelectedType.name);
         // Spaltennamen
+        Set<CMetamodel.Feature> features = Data.getOrderedFeatures(currentSelectedType);
         org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
         int colIdx = 0;
-        for (TableColumn<CDatamodel.Element, ?> col : tableView.getColumns()) {
-            headerRow.createCell(colIdx++).setCellValue(col.getText());
-        }
-        // Datenzeilen
+        for (CMetamodel.Feature f : features) { if (null != f) headerRow.createCell(colIdx++).setCellValue(f.name); }
+
         int rowIdx = 1;
-        for (CDatamodel.Element elem : tableView.getItems()) {
-            org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx++);
+        for (CDatamodel.Element elem : Data.getFilteredAndSortedData(currentSelectedType)) {
+            System.out.println(elem);
+            Row row = sheet.createRow(rowIdx++);
             colIdx = 0;
-            for (TableColumn<CDatamodel.Element, ?> col : tableView.getColumns()) {
-                Object cellValue = col.getCellObservableValue(elem) != null ? col.getCellObservableValue(elem).getValue() : null;
-                String text = "";
-                if (cellValue instanceof javafx.scene.control.Label label) {
-                    text = label.getText();
-                } else if (cellValue != null) {
-                    text = cellValue.toString();
-                }
-                row.createCell(colIdx++).setCellValue(text);
+            for (CMetamodel.Feature f : features) {
+                row.createCell(colIdx++).setCellValue(elem.AdditionalData.get(f.persistentName) != null ? elem.AdditionalData.get(f.persistentName).toString() : "");
             }
         }
+
         // Autosize columns
-        for (int i = 0; i < tableView.getColumns().size(); i++) {
-            sheet.autoSizeColumn(i);
-        }
+        for (int i = 0; i < features.size(); i++) { sheet.autoSizeColumn(i); }
         // Datei speichern
-        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
-            workbook.write(fos);
-        }
+        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) { workbook.write(fos); }
         workbook.close();
     }
 }
