@@ -133,7 +133,11 @@ public class JFXDownloadDialog {
         Task<String> downloadTask = new Task<String>() {
             @Override
             protected String call() throws Exception {
-                return CLuyFileService.downloadFile(username, password);
+                try { return CLuyFileService.downloadFile(username, password); }
+                catch (Exception E) {
+                    LUYViewer.LOGGER.log(java.util.logging.Level.SEVERE, "Failed to download LUY file", E);
+                    throw E;
+                }
             }
         };
 

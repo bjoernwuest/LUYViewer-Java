@@ -42,7 +42,7 @@ public class CLuyFileService {
         java.nio.file.Files.createDirectories(Paths.get("data"));
 
         // Get current time for consistent naming
-        String fileName = Long.toString(System.currentTimeMillis());
+        String fileName = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss"));
 
         // Create auth header
         String auth = Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
@@ -54,10 +54,13 @@ public class CLuyFileService {
 
         LUYViewer.LOGGER.info("Proxy used: " + System.getProperty("http.proxyHost") + ":" + System.getProperty("http.proxyPort"));
 
+        LUYViewer.LOGGER.info("Download metadata from : " + URI.create(config.luyHost + "/api/metamodel").toString());
         HttpResponse<String> metamodelResponse = httpClient.send(HttpRequest.newBuilder().uri(URI.create(config.luyHost + "/api/metamodel")).timeout(Duration.ofMinutes(2)).header("Accept", "application/json").header("User-Agent", "LUYViewer-Java/1.0.0").header("Authorization", "Basic " + auth).GET().build(), HttpResponse.BodyHandlers.ofString());
         if (200 == metamodelResponse.statusCode()) {
+            LUYViewer.LOGGER.info("Download data from : " + URI.create(config.luyHost + "/api/data").toString());
             HttpResponse<String> dataResponse = httpClient.send(HttpRequest.newBuilder().uri(URI.create(config.luyHost + "/api/data")).timeout(Duration.ofMinutes(10)).header("Accept", "application/json").header("User-Agent", "LUYViewer-Java/1.0.0").header("Authorization", "Basic " + auth).GET().build(), HttpResponse.BodyHandlers.ofString());
             if (200 == dataResponse.statusCode()) {
+                LUYViewer.LOGGER.info("Saving data file: " + fileName + "_metamodel.json / " + fileName + "_data.json");
                 java.nio.file.Files.writeString(Paths.get("data", fileName + "_metamodel.json"), metamodelResponse.body());
                 java.nio.file.Files.writeString(Paths.get("data", fileName + "_data.json"), dataResponse.body());
                 return fileName;

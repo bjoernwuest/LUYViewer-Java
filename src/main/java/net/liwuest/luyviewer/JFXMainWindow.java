@@ -42,7 +42,7 @@ public class JFXMainWindow {
                 Instant instant = Instant.ofEpochMilli(timestampLong);
                 LocalDateTime dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
                 return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            } catch (NumberFormatException | java.time.DateTimeException e) { return "Invalid timestamp: " + timestamp; }
+            } catch (NumberFormatException | java.time.DateTimeException e) { return timestamp; } // Assume that timestamp is already properly formatted
         }
     }
 
