@@ -25,7 +25,7 @@ This section describes step-by-step how to use the LUYViewer application. It is 
 * The LUYViewer is just a viewer for LUY data. It never manipulates any data in LUY.
 * The LUYViewer stores the data viewed locally in the sub-folder "data". The data is not encrypted or otherwise protected. So it is up to you to ensure that the data is not accessible to someone else.
 * The LUYViewer expects local, single-user usage. Thus, there is no login, authentication, or other mean of security!
-* As I expect that most people use the LUYViewer in business context, your IT department may have locked down your working environment in a way that execution is not permitted. In Windows, this usually involves the Windows Privacy Shield, and sometimes network configuration preventing actual download from your LUY host. If unsure, feel free to ask your IT department to check this [Github repository](https://github.com/bjoernwuest/LUYViewer) for any helpful information and at last resort, reach out to me.
+* As I expect that most people use the LUYViewer in business context, your IT department may have locked down your working environment in a way that execution is not permitted. In Windows, this usually involves the Windows Privacy Shield, and sometimes network configuration preventing actual download from your LUY host. If unsure, feel free to ask your IT department to check this [Github repository](https://github.com/bjoernwuest/LUYViewer-Java) for any helpful information and at last resort, reach out to me.
 
 ### Before first use
 
