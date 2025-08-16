@@ -61,7 +61,7 @@ public class CDatamodel {
     throw new IllegalArgumentException("Could not parse date-time string: \"" + dateTimeString + "\" with any known format.");
   }
 
-  public abstract static class Element<T extends CMetamodel.TypeExpression> implements Comparable<Element> {
+  public abstract static class Element<T extends CMetamodel.TypeExpression> implements Comparable<Element<T>> {
     public final T metamodelType;
     public final int id;
     public final String elementURI;
@@ -69,30 +69,28 @@ public class CDatamodel {
     public final String lastModificationUser;
     public final Map<String, Object> AdditionalData;
     public final Map<CMetamodel.Feature, List<CMetamodel.Literal>> Enumerations = new HashMap<>();
-    public final Map<CMetamodel.Feature, List<Element>> Relationships = new HashMap<>();
+    public final Map<CMetamodel.Feature, List<Element<CMetamodel.RelationshipTypeExpression>>> Relationships = new HashMap<>();
 
     Element(T MetamodelTypeExpression, Map<String, Object> Data, CMetamodel Metamodel) {
       this.metamodelType = MetamodelTypeExpression;
-      List<Object> idData = (List)Data.getOrDefault("id", new ArrayList<>());
-      id = idData.isEmpty() ? -1 : Integer.parseInt(idData.get(0).toString()); Data.put("id", id);
+      List<?> idData = (List<?>)Data.getOrDefault("id", new ArrayList<>());
+      id = idData.isEmpty() ? -1 : Integer.parseInt(idData.getFirst().toString()); Data.put("id", id);
       elementURI = Data.getOrDefault("elementURI", CTranslations.INSTANCE.Unknown_Placeholder).toString(); Data.put("elementURI", elementURI);
-      List<Object> lmtData = (List)Data.getOrDefault("lastModificationTime", new ArrayList<>());
-      lastModificationTime = parseToInstant(lmtData.isEmpty() ? "1970-01-01 00:00:00" : lmtData.get(0).toString()); Data.put("lastModificationTime", lastModificationTime);
-      List<Object> lmuData = (List)Data.getOrDefault("lastModificationUser", new ArrayList<>());
-      lastModificationUser = lmuData.isEmpty() ? CTranslations.INSTANCE.Unknown_Placeholder : lmuData.get(0).toString(); Data.put("lastModificationUser", lastModificationUser);
+      List<?> lmtData = (List<?>)Data.getOrDefault("lastModificationTime", new ArrayList<>());
+      lastModificationTime = parseToInstant(lmtData.isEmpty() ? "1970-01-01 00:00:00" : lmtData.getFirst().toString()); Data.put("lastModificationTime", lastModificationTime);
+      List<?> lmuData = (List<?>)Data.getOrDefault("lastModificationUser", new ArrayList<>());
+      lastModificationUser = lmuData.isEmpty() ? CTranslations.INSTANCE.Unknown_Placeholder : lmuData.getFirst().toString(); Data.put("lastModificationUser", lastModificationUser);
 
       // Process enumeration attributes
-      Iterator<Map.Entry<String, Object>> iter = Data.entrySet().iterator();
-      while (iter.hasNext()) {
-        Map.Entry<String, Object> dataEntry = iter.next();
+      for (Map.Entry<String, Object> dataEntry : Data.entrySet()) {
         MetamodelTypeExpression.features.stream().filter(f -> (CMetamodel.FeatureType.ENUMERATION == f.featureType) && f.persistentName.equals(dataEntry.getKey())).findFirst().ifPresent(f -> {
           Enumerations.putIfAbsent(f, new ArrayList<>());
-          if ((dataEntry.getValue() instanceof List valueList) && !valueList.isEmpty()) {
-            Metamodel.EnumerationExpressions.stream().filter(ee -> ee.persistentName.equals(f.type)).findFirst().ifPresent(ee -> {
-              valueList.forEach(value -> {
-                ee.literals.stream().filter(l -> l.persistentName.equals(value.toString())).findFirst().ifPresent(literal -> Enumerations.get(f).add(literal));
-              });
-            });
+          if ((dataEntry.getValue() instanceof List<?> valueList) && !valueList.isEmpty()) {
+            Metamodel.EnumerationExpressions.stream().filter(ee -> ee.persistentName.equals(f.type)).findFirst().ifPresent(ee ->
+              valueList.forEach(value ->
+                ee.literals.stream().filter(l -> l.persistentName.equals(value.toString())).findFirst().ifPresent(literal -> Enumerations.get(f).add(literal))
+              )
+            );
           }
           dataEntry.setValue(Enumerations.get(f));
         });
@@ -100,9 +98,9 @@ public class CDatamodel {
 
       AdditionalData = Data;
       // Transform types of additional data
-      AdditionalData.forEach((k, v) -> {
+      AdditionalData.forEach((k, v) ->
         MetamodelTypeExpression.features.stream().filter(f -> f.persistentName.equals(k)).findFirst().ifPresent(feature -> {
-          if (v instanceof List valueList) AdditionalData.put(k, valueList.stream().map(value -> {
+          if (v instanceof List<?> valueList) AdditionalData.put(k, valueList.stream().map(value -> {
             switch (feature.featureType) {
               case BOOLEAN: return Boolean.parseBoolean(value.toString());
               case DATE: try { return CDatamodel.parseToInstant(value.toString()); } catch (Exception e) { return null; }
@@ -121,19 +119,19 @@ public class CDatamodel {
               }
             }
           }).toList());
-        });
-      });
+        })
+      );
     }
 
     abstract Set<CMetamodel.Feature> getFeatures();
-    final void parseRelationships(CDatamodel datamodel) {
+    @SuppressWarnings({"unchecked"}) final void parseRelationships(CDatamodel datamodel) {
       for (CMetamodel.Feature feature : getFeatures()) {
         if ((CMetamodel.FeatureType.RELATION == feature.featureType) || (CMetamodel.FeatureType.SELF_RELATION == feature.featureType)) {
-          Relationships.putIfAbsent(feature, new ArrayList<Element>());
-          if (AdditionalData.get(feature.persistentName) instanceof List data) {
+          Relationships.putIfAbsent(feature, new ArrayList<>());
+          if (AdditionalData.get(feature.persistentName) instanceof List<?> data) {
             data.forEach(e -> {
               if (e instanceof Map element) {
-                Element luyElement = datamodel.lookupById(Integer.parseInt(element.getOrDefault("id", "-1").toString()));
+                Element<CMetamodel.RelationshipTypeExpression> luyElement = datamodel.lookupById(Integer.parseInt(element.getOrDefault("id", "-1").toString()));
                 if (null != luyElement) Relationships.get(feature).add(luyElement);
                 else LUYViewer.LOGGER.warning("Could not find LUY building block referenced by '" + feature.persistentName + "'");
               }
@@ -150,9 +148,9 @@ public class CDatamodel {
      */
     public final int getMaxValues() {
       return AdditionalData.values().stream().map(v -> {
-        if (v instanceof Collection c) return Math.max(1, c.size());
+        if (v instanceof Collection<?> c) return Math.max(1, c.size());
         else return 1;
-      }).max((x, y) -> Integer.compare(x, y)).orElse(1);
+      }).max(Integer::compare).orElse(1);
     }
 
     @Override public int compareTo(Element o) { return Integer.compare(this.id, o.id); }
@@ -170,14 +168,14 @@ public class CDatamodel {
     public final int position;
     BuildingBlock(Map<String, Object> Data, CMetamodel.SubstantialTypeExpression Type, CMetamodel Metamodel) {
       super(Type, Data, Metamodel);
-      List<Object> hierarchy_levelData = (List)Data.getOrDefault("$$hierarchy_level$$", new ArrayList<>());
-      hierarchy_level = hierarchy_levelData.isEmpty() ? -1 : Integer.parseInt(hierarchy_levelData.get(0).toString()); Data.put("$$hierarchy_level$$", hierarchy_level);
-      List<Object> nameData = (List)Data.getOrDefault("name", new ArrayList<>());
-      name = nameData.isEmpty() ? CTranslations.INSTANCE.Unknown_Placeholder : nameData.get(0).toString(); Data.put("name", name);
-      List<Object> descriptionData = (List)Data.getOrDefault("description", new ArrayList<>());
-      description = descriptionData.isEmpty() ? "" : descriptionData.get(0).toString(); Data.put("description", description);
-      List<Object> positionData = (List)Data.getOrDefault("position", new ArrayList<>());
-      position = positionData.isEmpty() ? -1 : Integer.parseInt(positionData.get(0).toString()); Data.put("position", position);
+      List<?> hierarchy_levelData = (List<?>)Data.getOrDefault("$$hierarchy_level$$", new ArrayList<>());
+      hierarchy_level = hierarchy_levelData.isEmpty() ? -1 : Integer.parseInt(hierarchy_levelData.getFirst().toString()); Data.put("$$hierarchy_level$$", hierarchy_level);
+      List<?> nameData = (List<?>)Data.getOrDefault("name", new ArrayList<>());
+      name = nameData.isEmpty() ? CTranslations.INSTANCE.Unknown_Placeholder : nameData.getFirst().toString(); Data.put("name", name);
+      List<?> descriptionData = (List<?>)Data.getOrDefault("description", new ArrayList<>());
+      description = descriptionData.isEmpty() ? "" : descriptionData.getFirst().toString(); Data.put("description", description);
+      List<?> positionData = (List<?>)Data.getOrDefault("position", new ArrayList<>());
+      position = positionData.isEmpty() ? -1 : Integer.parseInt(positionData.getFirst().toString()); Data.put("position", position);
 //      metamodelType = Type;
     }
 
@@ -193,7 +191,7 @@ public class CDatamodel {
   Element lookupById(int Id) {
     List<? extends Element> r = BuildingBlocks.values().stream().map(l -> l.stream().filter(e -> e.id == Id).toList()).filter(l -> !l.isEmpty()).findFirst().orElse(null);
     if (null == r) r = Relationships.values().stream().map(l -> l.stream().filter(e -> e.id == Id).toList()).filter(l -> !l.isEmpty()).findFirst().orElse(null);
-    if (null != r) return r.get(0); else return null;
+    if (null != r) return r.getFirst(); else return null;
   }
 
   public final Map<CMetamodel.SubstantialTypeExpression, Set<BuildingBlock>> BuildingBlocks = new TreeMap<>();
@@ -202,6 +200,7 @@ public class CDatamodel {
 
   private CDatamodel(CMetamodel Metamodel) { this.Metamodel = Metamodel; }
 
+  @SuppressWarnings("unchecked")
   public static CDatamodel load(String filename) throws IOException {
     ObjectMapper objectMapper = new ObjectMapper();
     CDatamodel datamodel = new CDatamodel(CMetamodel.load(filename));
@@ -213,7 +212,7 @@ public class CDatamodel {
     for (Map<String, Object> item : items) {
       String typeExpressionName = item.getOrDefault("query", CTranslations.INSTANCE.Unknown_Placeholder).toString();
       CMetamodel.TypeExpression typeExpression = datamodel.Metamodel.SubstantialTypeExpressions.stream().filter(ste -> ste.persistentName.equals(typeExpressionName)).map(ste -> (CMetamodel.TypeExpression)ste).findFirst().orElseGet(() -> datamodel.Metamodel.RelationshipTypeExpressions.stream().filter(rte -> rte.persistentName.equals(typeExpressionName)).findFirst().get());
-      if (item.getOrDefault("result", new ArrayList<>()) instanceof List elements) {
+      if (item.getOrDefault("result", new ArrayList<>()) instanceof List<?> elements) {
         for (Object element : elements) {
           if (element instanceof Map rawElementData) {
             // Make copy to be able to delete "processed" data
@@ -239,9 +238,9 @@ public class CDatamodel {
 
     StringBuilder loadOutput = new StringBuilder("Loaded LUY data from file '" + filename + "'");
     loadOutput.append("\n\tBuilding blocks:");
-    datamodel.BuildingBlocks.entrySet().forEach(e -> loadOutput.append("\n\t\t" + e.getKey().persistentName + ": " + e.getValue().size()));
+    datamodel.BuildingBlocks.forEach((key1, value1) -> loadOutput.append("\n\t\t").append(key1.persistentName).append(": ").append(value1.size()));
     loadOutput.append("\n\tRelations:");
-    datamodel.Relationships.entrySet().forEach(e -> loadOutput.append("\n\t\t" + e.getKey().persistentName + ": " + e.getValue().size()));
+    datamodel.Relationships.forEach((key, value) -> loadOutput.append("\n\t\t").append(key.persistentName).append(": ").append(value.size()));
     LUYViewer.LOGGER.log(Level.INFO, loadOutput.toString());
 
     return datamodel;

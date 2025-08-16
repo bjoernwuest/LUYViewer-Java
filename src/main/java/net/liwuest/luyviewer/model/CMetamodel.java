@@ -152,6 +152,7 @@ public class CMetamodel {
         }
 
         @Override public int compareTo(Literal Other) { return this.name.compareTo(Other.name); }
+        @Override public String toString() { return this.name; }
     }
 
     public final static class EnumerationExpression extends BasicExpression {
