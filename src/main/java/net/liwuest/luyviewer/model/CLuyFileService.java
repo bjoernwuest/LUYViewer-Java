@@ -93,14 +93,15 @@ public class CLuyFileService {
         }
       }
       // Nur Paare, die _data und _metamodel haben
-      HashSet<String> pairs = new HashSet<>();
+      Set<String> pairs = new HashSet<>();
       for (String base : bases) {
         boolean hasData = files.contains(base + "_data.json");
         boolean hasMeta = files.contains(base + "_metamodel.json");
         if (hasData && hasMeta) pairs.add(base);
       }
+      pairs = pairs.stream().map(p -> p.startsWith(prefix) ? p.substring(prefix.length()) : p).collect(Collectors.toSet());
         pairs.removeAll(listFiles());
-      return pairs.stream().map(p -> p.startsWith(prefix) ? p.substring(prefix.length()) : p).collect(Collectors.toSet());
+      return pairs;
     }
 
     /**
