@@ -80,10 +80,26 @@ public class JFXMainWindow {
             dialog.show();
         });
 
+        // S3-Download-Button direkt unterhalb des normalen Download-Buttons
+        Button s3DownloadButton = new Button(CTranslations.INSTANCE.Button_DownloadFromS3);
+        s3DownloadButton.setOnAction(e -> {
+            JFXS3DownloadDialog s3Dialog = new JFXS3DownloadDialog(stage, fileComboBox);
+            s3Dialog.setOnFileDownloaded(timestamp -> {
+                Platform.runLater(() -> {
+                    fileComboBox.getItems().add(new FileListEntry(timestamp));
+                    if (1 == fileComboBox.getItems().size()) {
+                        fileComboBox.getSelectionModel().selectFirst();
+                        loadDataModel(fileComboBox.getSelectionModel().getSelectedItem());
+                    }
+                });
+            });
+            s3Dialog.show();
+        });
+
         CEventBus.subscribe(event -> Platform.runLater(() -> statusBar.setText(CTranslations.INSTANCE.Status_BuildDataView)), CFilteredAndSortedDatamodel.BuildCachedDataview.class);
         CEventBus.subscribe(event -> Platform.runLater(() -> statusBar.setText(CTranslations.INSTANCE.Status_Ready)), CFilteredAndSortedDatamodel.FinishedBuildingCachedDataview.class);
 
-        setupUI(downloadButton);
+        setupUI(downloadButton, s3DownloadButton);
         stage.show();
     }
 
@@ -127,7 +143,7 @@ public class JFXMainWindow {
         loadThread.start();
     }
 
-    private void setupUI(Button downloadButton) {
+    private void setupUI(Button downloadButton, Button s3DownloadButton) {
         // Top panel with file selection and download button
         HBox topPanel = new HBox(10);
         topPanel.setPadding(new Insets(10));
@@ -140,7 +156,7 @@ public class JFXMainWindow {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.NEVER);
 
-        topPanel.getChildren().addAll(fileLabel, fileComboBox, downloadButton);
+        topPanel.getChildren().addAll(fileLabel, fileComboBox, downloadButton, s3DownloadButton);
 
         // Status bar styling
         statusBar.setPadding(new Insets(5, 10, 5, 10));

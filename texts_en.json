@@ -2,7 +2,7 @@
   "Label_Ready": "Ready",
   "Button_Download": "Download from LUY",
   "Label_Downloading": "Loading data...",
-  "Label_DownloadError": "Fehler beim herunterladen von LUY: %s",
+  "Label_DownloadError": "Fehler beim herunterladen: %s",
   "Label_SelectDatafile": "Select data file:",
   "Unknown_Placeholder": "<UNKNOWN>",
   "Button_Cancel": "Cancel",
@@ -36,5 +36,8 @@
   "Operation_ComplexAny": "match any",
   "Operation_ComplexAll": "match all",
   "Button_Export2Excel": "Export to Excel",
-  "Title_Export2Excel": "Export table as Excel file"
+  "Title_Export2Excel": "Export table as Excel file",
+  "Button_DownloadFromS3": "Get files from S3",
+  "Label_SelectDatasetToDownload": "Select data set to download",
+  "Label_S3ListingFailed": "Failed to list files from S3: %s"
 }

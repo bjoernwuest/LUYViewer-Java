@@ -2,7 +2,7 @@
   "Label_Ready": "Bereit",
   "Button_Download": "Hole Daten von LUY",
   "Label_Downloading": "Lade Daten von LUY herunter...",
-  "Label_DownloadError": "Fehler beim herunterladen von LUY: %s",
+  "Label_DownloadError": "Fehler beim herunterladen: %s",
   "Label_SelectDatafile": "LUY Datendatei auswählen",
   "Unknown_Placeholder": "<UNBEKANNT>",
   "Button_Cancel": "Abbrechen",
@@ -36,5 +36,8 @@
   "Operation_ComplexAny": "irgendeine",
   "Operation_ComplexAll": "alle",
   "Button_Export2Excel": "Als Excel exportieren",
-  "Title_Export2Excel": "Tabelle als Excel-Datei exportieren"
+  "Title_Export2Excel": "Tabelle als Excel-Datei exportieren",
+  "Button_DownloadFromS3": "Lade Dateien aus dem S3 herunter",
+  "Label_SelectDatasetToDownload": "Wähle Daten zum Download",
+  "Label_S3ListingFailed": "Kann S3 Daten nicht abrufen: %s"
 }
