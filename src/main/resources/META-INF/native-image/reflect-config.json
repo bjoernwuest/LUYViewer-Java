@@ -47,6 +47,10 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"com.sun.crypto.provider.HmacCore$HmacSHA256",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"com.sun.crypto.provider.HmacCore$HmacSHA384",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
@@ -115,8 +119,57 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"com.sun.xml.internal.stream.XMLInputFactoryImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"hellofx.HelloFX",
   "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"main","parameterTypes":["java.lang.String[]"] }]
+},
+{
+  "name":"io.minio.GetObjectArgs",
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.minio.ListObjectsArgs",
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.minio.messages.Contents",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.minio.messages.Item",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"io.minio.messages.ListBucketResultV2",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.minio.messages.ListObjectsResult",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true
+},
+{
+  "name":"io.minio.messages.LocationConstraint",
+  "allDeclaredFields":true,
+  "queryAllDeclaredMethods":true,
+  "queryAllDeclaredConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"io.minio.messages.ResponseDate$ResponseDateConverter",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
   "name":"java.lang.Character",
@@ -157,6 +210,10 @@
 },
 {
   "name":"java.security.interfaces.RSAPublicKey"
+},
+{
+  "name":"java.util.ArrayList",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
   "name":"java.util.Date"
@@ -558,6 +615,18 @@
   "name":"org.osgi.framework.FrameworkUtil"
 },
 {
+  "name":"org.simpleframework.xml.core.ElementLabel",
+  "methods":[{"name":"<init>","parameterTypes":["org.simpleframework.xml.core.Contact","org.simpleframework.xml.Element","org.simpleframework.xml.stream.Format"] }]
+},
+{
+  "name":"org.simpleframework.xml.core.ElementListLabel",
+  "methods":[{"name":"<init>","parameterTypes":["org.simpleframework.xml.core.Contact","org.simpleframework.xml.ElementList","org.simpleframework.xml.stream.Format"] }]
+},
+{
+  "name":"org.simpleframework.xml.core.TextLabel",
+  "methods":[{"name":"<init>","parameterTypes":["org.simpleframework.xml.core.Contact","org.simpleframework.xml.Text","org.simpleframework.xml.stream.Format"] }]
+},
+{
   "name":"schemaorg_apache_xmlbeans.system.sXMLCONFIG.TypeSystemHolder"
 },
 {
@@ -663,6 +732,10 @@
 },
 {
   "name":"sun.security.ssl.SSLContextImpl$DefaultSSLContext",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.ssl.SSLContextImpl$TLSContext",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {

@@ -1,6 +1,8 @@
 {
   "resources":{
   "includes":[{
+    "pattern":"\\QMETA-INF/MANIFEST.MF\\E"
+  }, {
     "pattern":"\\QMETA-INF/log4j-provider.properties\\E"
   }, {
     "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
@@ -21,11 +23,15 @@
   }, {
     "pattern":"\\QMETA-INF/services/javax.xml.parsers.SAXParserFactory\\E"
   }, {
+    "pattern":"\\QMETA-INF/services/javax.xml.stream.XMLInputFactory\\E"
+  }, {
     "pattern":"\\QMETA-INF/services/javax.xml.transform.TransformerFactory\\E"
   }, {
     "pattern":"\\QMETA-INF/services/org.apache.logging.log4j.spi.Provider\\E"
   }, {
     "pattern":"\\QMETA-INF/services/org.apache.logging.log4j.util.PropertySource\\E"
+  }, {
+    "pattern":"\\Qfavicon.png\\E"
   }, {
     "pattern":"\\Qhellofx/openduke.png\\E"
   }, {
@@ -205,13 +211,13 @@
     "classNames":["com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMessages", "com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMessages_de"]
   }, {
     "name":"com.sun.org.apache.xml.internal.serializer.XMLEntities",
-    "locales":[""]
+    "locales":["", "und"]
   }, {
     "name":"com/sun/javafx/scene/control/skin/resources/controls",
     "locales":["", "de", "und"]
   }, {
     "name":"org.apache.xmlbeans.impl.regex.message",
-    "locales":[""]
+    "locales":["", "und"]
   }, {
     "name":"sun.awt.resources.awt",
     "classNames":["sun.awt.resources.awt", "sun.awt.resources.awt_de"]
