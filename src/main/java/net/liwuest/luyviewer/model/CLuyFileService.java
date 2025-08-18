@@ -4,7 +4,9 @@ import io.minio.*;
 import net.liwuest.luyviewer.LUYViewer;
 import net.liwuest.luyviewer.util.CConfig;
 import net.liwuest.luyviewer.util.CConfigService;
+import okhttp3.OkHttpClient;
 
+import javax.net.ssl.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -74,11 +76,32 @@ public class CLuyFileService {
         } else throw new IOException("Failed to download metamodel file: HTTP " + metamodelResponse.statusCode()); // FIXME: translation
     }
 
+    private static MinioClient createMinioClient(CConfig config) throws Exception {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[0]; }
+                public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {}
+                public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {}
+            }
+        };
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+        builder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0]);
+        builder.hostnameVerifier((hostname, session) -> true);
+        OkHttpClient okHttpClient = builder.build();
+        return MinioClient.builder()
+            .endpoint(config.s3_url)
+            .credentials(config.s3_access_key, config.s3_secret_key)
+            .httpClient(okHttpClient)
+            .build();
+    }
+
     /**
      * Gibt die S3-Paare zurück, die lokal fehlen.
      */
     public static Set<String> getMissingS3Pairs(CConfig config) throws Exception {
-      MinioClient minioClient = MinioClient.builder().endpoint(config.s3_url).credentials(config.s3_access_key, config.s3_secret_key).build();
+      MinioClient minioClient = createMinioClient(config);
       String bucket = config.s3_bucket;
       String prefix = config.s3_folder.endsWith("/") ? config.s3_folder : config.s3_folder + "/";
       Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(prefix).recursive(true).build());
@@ -101,14 +124,14 @@ public class CLuyFileService {
       }
       pairs = pairs.stream().map(p -> p.startsWith(prefix) ? p.substring(prefix.length()) : p).collect(Collectors.toSet());
         pairs.removeAll(listFiles());
-      return pairs;
+        return pairs;
     }
 
     /**
      * Lädt ein _data und _metamodel Paar aus S3 in das lokale data/-Verzeichnis.
      */
     public static void downloadS3FilePair(CConfig config, String baseName) throws Exception {
-        MinioClient minioClient = MinioClient.builder().endpoint(config.s3_url).credentials(config.s3_access_key, config.s3_secret_key).build();
+        MinioClient minioClient = createMinioClient(config);
         String bucket = config.s3_bucket;
       String prefix = config.s3_folder.endsWith("/") ? config.s3_folder : config.s3_folder + "/";
         String dataKey = prefix.isEmpty() ? baseName + "_data.json" : prefix + baseName + "_data.json";
