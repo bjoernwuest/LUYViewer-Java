@@ -76,7 +76,14 @@ public class CLuyFileService {
         } else throw new IOException("Failed to download metamodel file: HTTP " + metamodelResponse.statusCode()); // FIXME: translation
     }
 
-    private static MinioClient createMinioClient(CConfig config) throws Exception {
+  /**
+   * Creates MinioClient without any SSL validations, if connection is done to SSL-protected S3.
+   *
+   * @param config
+   * @return
+   * @throws Exception
+   */
+  private static MinioClient createMinioClient(CConfig config) throws Exception {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         TrustManager[] trustAllCerts = new TrustManager[]{
             new X509TrustManager() {
@@ -98,10 +105,20 @@ public class CLuyFileService {
     }
 
     /**
+     * Erstellt einen MinioClient mit normaler SSL/TLS-Validierung (keine Umgehung, Zertifikate werden geprüft).
+     */
+    private static MinioClient createMinioClientWithSSLChecking(CConfig config) {
+        return MinioClient.builder()
+            .endpoint(config.s3_url)
+            .credentials(config.s3_access_key, config.s3_secret_key)
+            .build();
+    }
+
+    /**
      * Gibt die S3-Paare zurück, die lokal fehlen.
      */
     public static Set<String> getMissingS3Pairs(CConfig config) throws Exception {
-      MinioClient minioClient = createMinioClient(config);
+      MinioClient minioClient = config.s3_skip_ssl_validations ? createMinioClient(config) : createMinioClientWithSSLChecking(config);
       String bucket = config.s3_bucket;
       String prefix = config.s3_folder.endsWith("/") ? config.s3_folder : config.s3_folder + "/";
       Iterable<Result<Item>> results = minioClient.listObjects(ListObjectsArgs.builder().bucket(bucket).prefix(prefix).recursive(true).build());
@@ -131,7 +148,7 @@ public class CLuyFileService {
      * Lädt ein _data und _metamodel Paar aus S3 in das lokale data/-Verzeichnis.
      */
     public static void downloadS3FilePair(CConfig config, String baseName) throws Exception {
-        MinioClient minioClient = createMinioClient(config);
+      MinioClient minioClient = config.s3_skip_ssl_validations ? createMinioClient(config) : createMinioClientWithSSLChecking(config);
         String bucket = config.s3_bucket;
       String prefix = config.s3_folder.endsWith("/") ? config.s3_folder : config.s3_folder + "/";
         String dataKey = prefix.isEmpty() ? baseName + "_data.json" : prefix + baseName + "_data.json";

@@ -211,13 +211,13 @@
     "classNames":["com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMessages", "com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMessages_de"]
   }, {
     "name":"com.sun.org.apache.xml.internal.serializer.XMLEntities",
-    "locales":["", "und"]
+    "locales":["und"]
   }, {
     "name":"com/sun/javafx/scene/control/skin/resources/controls",
     "locales":["", "de", "und"]
   }, {
     "name":"org.apache.xmlbeans.impl.regex.message",
-    "locales":["", "und"]
+    "locales":["und"]
   }, {
     "name":"sun.awt.resources.awt",
     "classNames":["sun.awt.resources.awt", "sun.awt.resources.awt_de"]

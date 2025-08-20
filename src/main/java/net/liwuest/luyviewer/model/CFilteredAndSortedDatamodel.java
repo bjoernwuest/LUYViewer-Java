@@ -26,8 +26,6 @@ public final class CFilteredAndSortedDatamodel {
     public FeatureUnhidden(CMetamodel.Feature Feature) { this.Feature = Feature; }
   }
 
-//  public final class DataFiltered implements CEventBus.AbstractEvent {}
-
   private final CDatamodel m_Data;
   private final Map<CMetamodel.TypeExpression, LinkedHashMap<CMetamodel.Feature, SortOrder>> m_Orderings = new HashMap<>();
   private final Map<CMetamodel.TypeExpression, Set<CMetamodel.Feature>> m_HiddenFeatures = new HashMap<>();

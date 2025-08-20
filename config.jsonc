@@ -1,11 +1,15 @@
 {
+  // The language to use (two-letter code), replaces the xx in the "label_xx.json" file name to use
+  "language": "en",
+  // Enable or disable download from LUY host
+  "enable_luy_host_download": "false",
   // The URL of the LUY host. Do not terminate with / and include schema (http, https). Example: https://demo.luy.app
   "luy_host": "https://demo.luy.app",
-  // The language to use (two-letter code), replaces the xx in the "label_xx.json" file name to use
-  "language": "de",
-  "s3_url": "http://s3-host+plus",
+  "enable_s3_download": "true",
+  "s3_url": "http://s3_with:port",
+  "s3_skip_ssl_validations": "false",
   "s3_access_key": "key",
   "s3_secret_key": "secret",
-  "s3_bucket": "bucket",
-  "s3_folder": "subfolders"
+  "s3_bucket": "bucket_name",
+  "s3_folder": "folders_separated_by_slash"
 }

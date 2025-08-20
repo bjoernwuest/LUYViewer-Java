@@ -55,6 +55,10 @@ public final class CTranslations {
   @JsonProperty(value = "Operation_StartsWith", defaultValue = "starts with") public String Operation_StartsWith;
   @JsonProperty(value = "Operation_EndsWith", defaultValue = "ends with") public String Operation_EndsWith;
   @JsonProperty(value = "Operation_Button_Complex", defaultValue = "complex filter") public String Operation_Button_Complex;
+  @JsonProperty(value = "Operation_Less_or_Equal", defaultValue = "less or equals") public String Operation_Less_or_Equal;
+  @JsonProperty(value = "Operation_More_or_Equal", defaultValue = "more or equals") public String Operation_More_or_Equal;
+  @JsonProperty(value = "Operation_Before", defaultValue = "before") public String Operation_Before;
+  @JsonProperty(value = "Operation_After", defaultValue = "after") public String Operation_After;
   @JsonProperty(value = "Operation_ComplexAny", defaultValue = "match any") public String Operation_ComplexAny;
   @JsonProperty(value = "Operation_ComplexAll", defaultValue = "match all") public String Operation_ComplexAll;
 

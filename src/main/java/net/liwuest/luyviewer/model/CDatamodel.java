@@ -176,7 +176,6 @@ public class CDatamodel {
       description = descriptionData.isEmpty() ? "" : descriptionData.getFirst().toString(); Data.put("description", description);
       List<?> positionData = (List<?>)Data.getOrDefault("position", new ArrayList<>());
       position = positionData.isEmpty() ? -1 : Integer.parseInt(positionData.getFirst().toString()); Data.put("position", position);
-//      metamodelType = Type;
     }
 
     @Override Set<CMetamodel.Feature> getFeatures() { return metamodelType.features; }

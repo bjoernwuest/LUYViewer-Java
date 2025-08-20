@@ -15,6 +15,8 @@ import javafx.stage.Stage;
 import net.liwuest.luyviewer.model.CDatamodel;
 import net.liwuest.luyviewer.model.CFilteredAndSortedDatamodel;
 import net.liwuest.luyviewer.model.CLuyFileService;
+import net.liwuest.luyviewer.util.CConfig;
+import net.liwuest.luyviewer.util.CConfigService;
 import net.liwuest.luyviewer.util.CEventBus;
 import net.liwuest.luyviewer.util.CTranslations;
 
@@ -156,7 +158,12 @@ public class JFXMainWindow {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.NEVER);
 
-        topPanel.getChildren().addAll(fileLabel, fileComboBox, downloadButton, s3DownloadButton);
+        topPanel.getChildren().addAll(fileLabel, fileComboBox);
+        try {
+          CConfig config = CConfigService.getConfig();
+          if (config.enable_luy_host_download) topPanel.getChildren().add(downloadButton);
+          if (config.enable_s3_download) topPanel.getChildren().add(s3DownloadButton);
+        } catch (IOException Ignore) { LUYViewer.LOGGER.log(Level.WARNING, "Failed to read configuration", Ignore); }
 
         // Status bar styling
         statusBar.setPadding(new Insets(5, 10, 5, 10));

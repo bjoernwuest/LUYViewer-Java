@@ -8,9 +8,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CConfig {
-  @JsonProperty("luy_host") public String luyHost;
   @JsonProperty("language") public String language;
+  @JsonProperty("enable_luy_host_download") public boolean enable_luy_host_download;
+  @JsonProperty("luy_host") public String luyHost;
+  @JsonProperty("enable_s3_download") public boolean enable_s3_download;
   @JsonProperty("s3_url") public String s3_url;
+  @JsonProperty("s3_skip_ssl_validations") public boolean s3_skip_ssl_validations;
   @JsonProperty("s3_access_key") public String s3_access_key;
   @JsonProperty("s3_secret_key") public String s3_secret_key;
   @JsonProperty("s3_bucket") public String s3_bucket;

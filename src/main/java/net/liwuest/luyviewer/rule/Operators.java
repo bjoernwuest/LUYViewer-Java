@@ -87,7 +87,13 @@ public final class Operators {
     @Override public String toString() { return CTranslations.INSTANCE.Operation_Any; }
   };
 
-
+  private static Node getDateInput(CRule Rule) {
+    DatePicker dp = new DatePicker();
+    Object val = Rule.getValue();
+    if (val instanceof java.time.LocalDate ld) dp.setValue(ld);
+    dp.valueProperty().addListener((obs, old, v) -> Rule.setValue(v));
+    return dp;
+  }
   @SuppressWarnings("unused") public final static IOperator<Date> DATE_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Date Against) {
       Date typedValued = null;
@@ -100,19 +106,63 @@ public final class Operators {
     }
 
     @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DATE == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDateInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Date> DATE_BEFORE = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Date Against) {
+      Date typedValued = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Date bv)) typedValued = bv;
+      if ((null == typedValued) && (Value instanceof Date bv)) typedValued = bv;
 
-    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
-      DatePicker dp = new DatePicker();
-      Object val = Rule.getValue();
-      if (val instanceof java.time.LocalDate ld) dp.setValue(ld);
-      dp.valueProperty().addListener((obs, old, v) -> Rule.setValue(v));
-      return dp;
+      final Date valueToValidate = typedValued;
+      if (null == Against) return (null == valueToValidate);
+      else return Against.after(valueToValidate);
     }
 
-    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DATE == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDateInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Before; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Date> DATE_AFTER = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Date Against) {
+      Date typedValued = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Date bv)) typedValued = bv;
+      if ((null == typedValued) && (Value instanceof Date bv)) typedValued = bv;
+
+      final Date valueToValidate = typedValued;
+      if (null == Against) return (null == valueToValidate);
+      else return Against.before(valueToValidate);
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DATE == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDateInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_After; }
   };
 
 
+  private static void updateDateTimeValue(CRule rule, DatePicker dp, TextField tfTime) {
+    LocalDate date = dp.getValue();
+    String time = tfTime.getText();
+    if (date == null || time == null || time.isBlank()) rule.setValue(null);
+    else try { rule.setValue(LocalDateTime.of(date, LocalTime.parse(time)).atZone(ZoneId.systemDefault()).toInstant()); } catch (Exception ex) { rule.setValue(null); }
+  }
+  private static Node getDateTimeInput(CRule Rule) {
+    // DatePicker + Uhrzeitfeld
+    VBox box = new VBox(2);
+    javafx.scene.control.DatePicker dp = new javafx.scene.control.DatePicker();
+    TextField tfTime = new TextField();
+    tfTime.setPromptText("HH:mm:ss");
+    Object val = Rule.getValue();
+    if (val instanceof java.time.LocalDateTime ldt) {
+      dp.setValue(ldt.toLocalDate());
+      tfTime.setText(ldt.toLocalTime().toString());
+    }
+    dp.valueProperty().addListener((obs, old, v) -> updateDateTimeValue(Rule, dp, tfTime));
+    tfTime.textProperty().addListener((obs, old, v) -> updateDateTimeValue(Rule, dp, tfTime));
+    box.getChildren().addAll(dp, tfTime);
+    return box;
+  }
   @SuppressWarnings("unused") public final static IOperator<Instant> DATE_TIME_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Instant Against) {
       Instant typedValued = null;
@@ -125,35 +175,62 @@ public final class Operators {
     }
 
     @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DATE_TIME == Feature.featureType; }
-
-    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
-      // DatePicker + Uhrzeitfeld
-      VBox box = new VBox(2);
-      javafx.scene.control.DatePicker dp = new javafx.scene.control.DatePicker();
-      TextField tfTime = new TextField();
-      tfTime.setPromptText("HH:mm:ss");
-      Object val = Rule.getValue();
-      if (val instanceof java.time.LocalDateTime ldt) {
-        dp.setValue(ldt.toLocalDate());
-        tfTime.setText(ldt.toLocalTime().toString());
-      }
-      dp.valueProperty().addListener((obs, old, v) -> updateDateTimeValue(Rule, dp, tfTime));
-      tfTime.textProperty().addListener((obs, old, v) -> updateDateTimeValue(Rule, dp, tfTime));
-      box.getChildren().addAll(dp, tfTime);
-      return box;
-    }
-
-    private void updateDateTimeValue(CRule rule, DatePicker dp, TextField tfTime) {
-      LocalDate date = dp.getValue();
-      String time = tfTime.getText();
-      if (date == null || time == null || time.isBlank()) rule.setValue(null);
-      else try { rule.setValue(LocalDateTime.of(date, LocalTime.parse(time)).atZone(ZoneId.systemDefault()).toInstant()); } catch (Exception ex) { rule.setValue(null); }
-    }
-
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDateTimeInput(Rule); }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Instant> DATE_TIME_BEFORE = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Instant Against) {
+      Instant typedValued = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Instant bv)) typedValued = bv;
+      if ((null == typedValued) && (Value instanceof Instant bv)) typedValued = bv;
+
+      final Instant valueToValidate = typedValued;
+      if (null == Against) return (null == valueToValidate);
+      else return 0 < Against.compareTo(valueToValidate);
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DATE_TIME == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDateTimeInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Before; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Instant> DATE_TIME_AFTER = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Instant Against) {
+      Instant typedValued = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Instant bv)) typedValued = bv;
+      if ((null == typedValued) && (Value instanceof Instant bv)) typedValued = bv;
+
+      final Instant valueToValidate = typedValued;
+      if (null == Against) return (null == valueToValidate);
+      else return 0 > Against.compareTo(valueToValidate);
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DATE_TIME == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDateTimeInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_After; }
   };
 
 
+  private static Node getDecimalInput(CRule Rule) {
+    TextField tf = new TextField(null == Rule.getValue() ? "" : Rule.getValue().toString());
+    // Validator: Nur Dezimalzahlen zulassen
+    tf.textProperty().addListener((obs, old, v) -> {
+      if (v == null || v.isBlank()) {
+        Rule.setValue(null);
+        tf.setStyle("");
+      } else {
+        try {
+          Double.parseDouble(v.replace(',', '.'));
+          Rule.setValue(Double.parseDouble(v.replace(',', '.')));
+          tf.setStyle("");
+        } catch (NumberFormatException ex) {
+          tf.setStyle("-fx-background-color: #ffcccc;");
+          Rule.setValue(null);
+        }
+      }
+    });
+    tf.setPromptText("Dezimalzahl");
+    return tf;
+  }
   @SuppressWarnings("unused") public final static IOperator<Double> DECIMAL_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Double Against) {
       Double typedValue = null;
@@ -166,33 +243,62 @@ public final class Operators {
     }
 
     @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DECIMAL == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDecimalInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Double> DECIMAL_LESS_OR_EQUAL = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Double Against) {
+      Double typedValue = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Double bv)) typedValue = bv;
+      if ((null == typedValue) && (Value instanceof Double bv)) typedValue = bv;
 
-    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
-      TextField tf = new TextField(null == Rule.getValue() ? "" : Rule.getValue().toString());
-      // Validator: Nur Dezimalzahlen zulassen
-      tf.textProperty().addListener((obs, old, v) -> {
-        if (v == null || v.isBlank()) {
-          Rule.setValue(null);
-          tf.setStyle("");
-        } else {
-          try {
-            Double.parseDouble(v.replace(',', '.'));
-            Rule.setValue(Double.parseDouble(v.replace(',', '.')));
-            tf.setStyle("");
-          } catch (NumberFormatException ex) {
-            tf.setStyle("-fx-background-color: #ffcccc;");
-            Rule.setValue(null);
-          }
-        }
-      });
-      tf.setPromptText("Dezimalzahl");
-      return tf;
+      final Double valueToValidate = typedValue;
+      if (null == Against) return (null == valueToValidate);
+      else return Against > valueToValidate;
     }
 
-    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DECIMAL == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDecimalInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Less_or_Equal; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Double> DECIMAL_MORE_OR_EQUAL = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Double Against) {
+      Double typedValue = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Double bv)) typedValue = bv;
+      if ((null == typedValue) && (Value instanceof Double bv)) typedValue = bv;
+
+      final Double valueToValidate = typedValue;
+      if (null == Against) return (null == valueToValidate);
+      else return Against < valueToValidate;
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.DECIMAL == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getDecimalInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_More_or_Equal; }
   };
 
 
+  private static Node getIntegerInput(CRule Rule) {
+    TextField tf = new TextField(null == Rule.getValue() ? "" : Rule.getValue().toString());
+    // Validator: Nur Integer zulassen
+    tf.textProperty().addListener((obs, old, v) -> {
+      if (v == null || v.isBlank()) {
+        Rule.setValue(null);
+        tf.setStyle("");
+      } else {
+        try {
+          Integer.parseInt(v);
+          Rule.setValue(Integer.parseInt(v));
+          tf.setStyle("");
+        } catch (NumberFormatException ex) {
+          tf.setStyle("-fx-background-color: #ffcccc;");
+          Rule.setValue(null);
+        }
+      }
+    });
+    tf.setPromptText("Ganzzahl");
+    return tf;
+  }
   @SuppressWarnings("unused") public final static IOperator<Integer> INTEGER_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Integer Against) {
       Integer typedValued = null;
@@ -205,30 +311,38 @@ public final class Operators {
     }
 
     @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.INTEGER == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getIntegerInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Integer> INTEGER_LESS_OR_EQUAL = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Integer Against) {
+      Integer typedValued = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Integer bv)) typedValued = bv;
+      if ((null == typedValued) && (Value instanceof Integer bv)) typedValued = bv;
 
-    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
-      TextField tf = new TextField(null == Rule.getValue() ? "" : Rule.getValue().toString());
-      // Validator: Nur Integer zulassen
-      tf.textProperty().addListener((obs, old, v) -> {
-        if (v == null || v.isBlank()) {
-          Rule.setValue(null);
-          tf.setStyle("");
-        } else {
-          try {
-            Integer.parseInt(v);
-            Rule.setValue(Integer.parseInt(v));
-            tf.setStyle("");
-          } catch (NumberFormatException ex) {
-            tf.setStyle("-fx-background-color: #ffcccc;");
-            Rule.setValue(null);
-          }
-        }
-      });
-      tf.setPromptText("Ganzzahl");
-      return tf;
+      final Integer valueToValidate = typedValued;
+      if (null == Against) return null == valueToValidate;
+      else return Against > valueToValidate;
     }
 
-    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.INTEGER == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getIntegerInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Less_or_Equal; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Integer> INTEGER_MORE_OR_EQUAL = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Integer Against) {
+      Integer typedValued = null;
+      if ((Value instanceof Collection<?> listValue) && !listValue.isEmpty() && (listValue.iterator().next() instanceof Integer bv)) typedValued = bv;
+      if ((null == typedValued) && (Value instanceof Integer bv)) typedValued = bv;
+
+      final Integer valueToValidate = typedValued;
+      if (null == Against) return null == valueToValidate;
+      else return Against < valueToValidate;
+    }
+
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.INTEGER == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getIntegerInput(Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_More_or_Equal; }
   };
 
 
@@ -414,6 +528,35 @@ public final class Operators {
   };
 
 
+  private static Node getSelfRelationInput(CDatamodel Data, CMetamodel.TypeExpression ForType, CRule Rule) {
+    Set<CDatamodel.BuildingBlock> buildingBlocks = Data.BuildingBlocks.get(ForType).stream().sorted((bb1, bb2) -> bb1.name.compareTo(bb2.name)).collect(Collectors.toCollection(LinkedHashSet::new));
+    Set<CDatamodel.BuildingBlock> selected = new HashSet<>();
+    Object val = Rule.getValue();
+    if (val instanceof Collection<?> list) list.forEach(o -> { if (o instanceof CDatamodel.BuildingBlock ste) selected.add(ste); });
+    List<CheckBox> checkBoxes = new ArrayList<>();
+    VBox box = new VBox(4);
+    VBox inner = new VBox(4);
+    if (buildingBlocks != null) {
+      buildingBlocks.forEach(bb -> {
+        String label = bb.name + " (ID: " + bb.id + ")";
+        CheckBox cb = new CheckBox(label);
+        inner.getChildren().add(cb);
+        if (selected.stream().anyMatch(sel -> sel.equals(bb))) cb.setSelected(true);
+        cb.selectedProperty().addListener((obs, old, isSelected) -> {
+          if (isSelected) selected.add(bb);
+          else selected.remove(bb);
+          if (selected.isEmpty()) Rule.setValue(null);
+          else Rule.setValue(new HashSet<>(selected));
+        });
+        checkBoxes.add(cb);
+      });
+    }
+    ScrollPane scroll = new ScrollPane(inner);
+    scroll.setFitToWidth(true);
+    scroll.setPrefViewportHeight(80);
+    box.getChildren().add(scroll);
+    return box;
+  }
   @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.SubstantialTypeExpression>> SELF_RELATION_EQUALS = new IOperator<>() {
     @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Set<CMetamodel.SubstantialTypeExpression> Against) {
       Set<CMetamodel.SubstantialTypeExpression> valuesToValidate = new HashSet<>();
@@ -425,38 +568,22 @@ public final class Operators {
     }
 
     @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.SELF_RELATION == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getSelfRelationInput(Data, ForType, Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+  };
+  @SuppressWarnings("unused") public final static IOperator<Set<CMetamodel.SubstantialTypeExpression>> SELF_RELATION_CONTAINS = new IOperator<>() {
+    @Override public boolean evaluate(Object Value, CMetamodel.Feature OfFeature, Set<CMetamodel.SubstantialTypeExpression> Against) {
+      Set<CMetamodel.SubstantialTypeExpression> valuesToValidate = new HashSet<>();
+      if (Value instanceof Collection<?> listValue) listValue.stream().filter(v -> v instanceof CMetamodel.SubstantialTypeExpression).forEach(v -> valuesToValidate.add((CMetamodel.SubstantialTypeExpression) v));
+      if (Value instanceof CMetamodel.SubstantialTypeExpression singleValue) valuesToValidate.add(singleValue);
 
-    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) {
-      Set<CDatamodel.BuildingBlock> buildingBlocks = Data.BuildingBlocks.get(ForType).stream().sorted((bb1, bb2) -> bb1.name.compareTo(bb2.name)).collect(Collectors.toCollection(LinkedHashSet::new));
-      Set<CDatamodel.BuildingBlock> selected = new HashSet<>();
-      Object val = Rule.getValue();
-      if (val instanceof Collection<?> list) list.forEach(o -> { if (o instanceof CDatamodel.BuildingBlock ste) selected.add(ste); });
-      List<CheckBox> checkBoxes = new ArrayList<>();
-      VBox box = new VBox(4);
-      VBox inner = new VBox(4);
-      if (buildingBlocks != null) {
-        buildingBlocks.forEach(bb -> {
-          String label = bb.name + " (ID: " + bb.id + ")";
-          CheckBox cb = new CheckBox(label);
-          inner.getChildren().add(cb);
-          if (selected.stream().anyMatch(sel -> sel.equals(bb))) cb.setSelected(true);
-          cb.selectedProperty().addListener((obs, old, isSelected) -> {
-            if (isSelected) selected.add(bb);
-            else selected.remove(bb);
-            if (selected.isEmpty()) Rule.setValue(null);
-            else Rule.setValue(new HashSet<>(selected));
-          });
-          checkBoxes.add(cb);
-        });
-      }
-      ScrollPane scroll = new ScrollPane(inner);
-      scroll.setFitToWidth(true);
-      scroll.setPrefViewportHeight(80);
-      box.getChildren().add(scroll);
-      return box;
+      if (null == Against || Against.isEmpty()) return valuesToValidate.isEmpty();
+      return Against.stream().anyMatch(v -> valuesToValidate.contains(v));
     }
 
-    @Override public String toString() { return CTranslations.INSTANCE.Operation_Equals; }
+    @Override public boolean compatibleWith(CMetamodel.Feature Feature) { return CMetamodel.FeatureType.SELF_RELATION == Feature.featureType; }
+    @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getSelfRelationInput(Data, ForType, Rule); }
+    @Override public String toString() { return CTranslations.INSTANCE.Operation_Contains; }
   };
 
 
@@ -534,9 +661,6 @@ public final class Operators {
     @Override public Node getInput(CFilter Filter, CRule Rule, CMetamodel.Feature Feature, CMetamodel.TypeExpression ForType, CDatamodel Data) { return getRTEInput(Filter, Rule, Feature, Data); }
     @Override public String toString() { return CTranslations.INSTANCE.Operation_ComplexAll; }
   };
-
-
-
 
 
   @SuppressWarnings("rawtypes") public static Set<IOperator> getSupportedOperators(CMetamodel.Feature Feature) {
